@@ -1,40 +1,59 @@
+/* HEADER */
 #header {
     position: fixed;
     top: 0;
     width: 100%;
     height: 10vh;
-    background-color: lightcyan;
+
+    /* 🔥 ESTILO PRO */
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #f9fafb;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     padding: 1rem;
+    z-index: 1000;
+
+    border-bottom: 1px solid #334155;
 }
 
+/* TÍTULO */
 #nombre-de-proyecto {
     font-size: 1rem;
+    font-weight: 600;
+    color: #f9fafb;
 }
 
+/* CONTENIDO */
 #content {
     position: fixed;
     margin-top: 10vh;
     width: 100%;
     height: 90vh;
+
     padding: 1rem;
     overflow: auto;
+
+    /* FONDO GENERAL */
+    background: #0f172a;
 }
 
+/*  BOTONES PRIME */
 ::ng-deep .p-button {
     font-size: 0.8rem !important;
 }
 
-
+/* RESPONSIVE */
 @media (min-width: 768px) {
+
     #nombre-de-proyecto {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        font-weight: 700;
     }
 
     ::ng-deep .p-button {
         font-size: 1rem !important;
     }
-
 }

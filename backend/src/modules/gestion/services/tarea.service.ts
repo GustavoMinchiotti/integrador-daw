@@ -1,42 +1,72 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { CreateTareaDto } from "../dtos/input/create-tarea.dto";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Tarea } from "../entities/tarea.entity";
-import { Repository } from "typeorm";
-import { EstadosTareasEnum } from "../enums/estados-tareas.enum";
-import { UpdateTareaDto } from "../dtos/input/update-tarea.dto";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreateTareaDto } from '../dtos/input/create-tarea.dto';
+import { UpdateTareaDto } from '../dtos/input/update-tarea.dto';
+import { Tarea } from '../entities/tarea.entity';
+import { EstadosTareasEnum } from '../enums/estados-tareas.enum';
+import { Proyecto } from '../entities/proyecto.entity';
 
 @Injectable()
 export class TareasService {
+  constructor(
+    @InjectRepository(Tarea)
+    private readonly tareasRepository: Repository<Tarea>,
 
-    constructor(@InjectRepository(Tarea) private readonly tareasRepository: Repository<Tarea>) {
+    @InjectRepository(Proyecto)
+    private readonly proyectosRepository: Repository<Proyecto>,
+  ) {}
 
+  async crearTarea(
+    dto: CreateTareaDto,
+    idProyecto: number,
+  ): Promise<{ id: number }> {
+    const proyecto = await this.proyectosRepository.findOne({
+      where: { id: idProyecto },
+    });
+
+    if (!proyecto) {
+      throw new BadRequestException('El proyecto indicado no existe');
     }
 
-    async crearTarea(dto: CreateTareaDto, idProyecto: number): Promise<{ id: number }> {
+    const tarea = this.tareasRepository.create(dto);
 
-        const tarea: Tarea = this.tareasRepository.create(dto);
+    tarea.estado = EstadosTareasEnum.PENDIENTE;
 
-        tarea.estado = EstadosTareasEnum.PENDIENTE;
-        tarea.idProyecto = idProyecto;
+    tarea.proyecto = proyecto;
 
-        await this.tareasRepository.save(tarea);
+    await this.tareasRepository.save(tarea);
 
-        return { id: tarea.id };
+    return { id: tarea.id };
+  }
 
+  async actualizarTarea(dto: UpdateTareaDto, idTarea: number): Promise<void> {
+    const tarea = await this.tareasRepository.findOne({
+      where: { id: idTarea },
+    });
+
+    if (!tarea) {
+      throw new BadRequestException('La tarea indicada no existe');
     }
 
-    async actualizarTarea(dto: UpdateTareaDto, idTarea: number): Promise<void> {
-        const tarea: Tarea | null = await this.tareasRepository.findOne({ where: { id: idTarea } });
+    this.tareasRepository.merge(tarea, dto);
 
-        if (!tarea) {
-            throw new BadRequestException("La tarea indicada no existe");
-        }
+    await this.tareasRepository.save(tarea);
+  }
 
-        this.tareasRepository.merge(tarea, dto);
+  async obtenerTareas(idProyecto: number, estado?: string) {
+    const where: any = {
+      proyecto: { id: idProyecto },
+    };
 
-        await this.tareasRepository.save(tarea);
-
+    if (estado) {
+      where.estado = estado;
     }
 
+    return this.tareasRepository.find({
+      where,
+      order: { id: 'ASC' },
+    });
+  }
 }

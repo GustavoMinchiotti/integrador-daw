@@ -1,7 +1,98 @@
-#boton-gestionar-tareas{
+/* BOTONES */
+#boton-gestionar-tareas {
     margin-right: 1rem;
 }
 
-#tabla{
+/* TABLA */
+#tabla {
     margin-top: 1rem;
-}   
+}
+
+/* FONDO GENERAL */
+:host {
+    display: block;
+    padding: 1rem;
+}
+
+/*  CONTENEDOR SUPERIOR */
+app-template {
+    display: block;
+}
+
+/* PANEL DE FILTROS */
+.filtro-panel {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* INPUT Y SELECT */
+input, select {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border: 1px solid #374151 !important;
+    border-radius: 6px;
+    padding: 0.6rem;
+}
+
+/* BOTÓN CREAR */
+::ng-deep #boton-crear-proyecto {
+    background: #10b981 !important;
+    border: none !important;
+}
+
+/* TABLA PRIME NG */
+::ng-deep .p-datatable {
+    background: #111827;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* HEADER */
+::ng-deep .p-datatable-thead > tr > th {
+    background: #1f2937;
+    color: #e5e7eb;
+    font-weight: 600;
+    border: none;
+}
+
+/* FILAS */
+::ng-deep .p-datatable-tbody > tr {
+    color: #f9fafb;
+}
+
+/* HOVER */
+::ng-deep .p-datatable-tbody > tr:hover {
+    background: #1e293b;
+    transition: 0.2s;
+}
+
+/* TEXTOS */
+strong {
+    color: #f9fafb;
+}
+
+/* CLIENTE */
+span {
+    font-size: 0.9rem;
+}
+
+/* PAGINACIÓN */
+button {
+    background: #1f2937;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #334155;
+}
+
+/*  TOOLTIP */
+::ng-deep .p-tooltip {
+    font-size: 0.8rem;
+}

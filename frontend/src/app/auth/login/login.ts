@@ -12,16 +12,14 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
     selector: "app-login",
     templateUrl: "./login.html",
     styleUrl: "./login.css",
+    standalone: true, // Asegura que Angular procese los imports en esta versión
     imports: [ButtonModule, InputTextModule, PasswordModule, ReactiveFormsModule]
 })
-export class Login {
+export class Login { // El nombre de la clase debe ser 'Login' para coincidir con app.routes.ts
 
     private readonly loginApiClient: LoginApiClient = inject(LoginApiClient);
-
-    private readonly messageService: MessageService = inject(MessageService)
-
+    private readonly messageService: MessageService = inject(MessageService);
     private readonly authStore: AuthStore = inject(AuthStore);
-
     private readonly router: Router = inject(Router);
 
     readonly form: FormGroup = new FormGroup({
@@ -30,27 +28,24 @@ export class Login {
     });
 
     iniciarSesion() {
-
-        if (!this.form.valid){
-            this.messageService.add({severity: "error", summary: "Los campos del formulario son requeridos"});
+        if (!this.form.valid) {
+            this.form.markAllAsTouched();
+            this.messageService.add({ severity: "warn", summary: "Atención", detail: "Por favor, completa tu usuario y clave." });
             return;
         }
 
-        const nombre: string = this.form.value.nombre
-
-        const clave: string = this.form.value.clave
+        const nombre: string = this.form.value.nombre!;
+        const clave: string = this.form.value.clave!;
 
         this.loginApiClient.iniciarSesion(nombre, clave).subscribe({
-            next: (data)=>{
+            next: (data) => {
                 this.authStore.guardarToken(data.accessToken);
                 this.router.navigateByUrl("/proyectos");
             },
-            error: (err)=>{
-                this.messageService.add({severity: "error", summary: "Ha ocurrido un error al iniciar sesión"})
+            error: (err) => {
+                const errorMessage = err.error?.message || "Ha ocurrido un error al iniciar sesión en el servidor.";
+                this.messageService.add({ severity: "error", summary: "Acceso Denegado", detail: errorMessage });
             }
         });
-
-
     }
-
 }

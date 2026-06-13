@@ -15,133 +15,149 @@ import { ClientesListadoApiClient } from "../clientes/listado/clientes-listado-a
 import { ClientesListado } from "../clientes/listado/clientes-listado";
 import { EstadosClientesEnum } from "../clientes/estados-clientes-enum";
 import { NgSelectModule } from '@ng-select/ng-select';
-import { AuthStore } from "../../auth/auth-store";
 
 @Component({
-    selector: "app-gestion-proyecto",
-    templateUrl: "./gestion-proyecto.html",
-    styleUrls: ["./gestion-proyecto.css"],
-    imports: [DialogModule, InputTextModule, SelectModule, ButtonModule, ReactiveFormsModule, ClientesListado, NgSelectModule]
+  selector: "app-gestion-proyecto",
+  templateUrl: "./gestion-proyecto.html",
+  styleUrls: ["./gestion-proyecto.css"],
+  imports: [
+    DialogModule,
+    InputTextModule,
+    SelectModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    ClientesListado,
+    NgSelectModule
+  ]
 })
 export class GestionProyecto implements OnInit {
-    visible: ModelSignal<boolean> = model(false);
-    readonly dialogClientesVisible: WritableSignal<boolean> = signal<boolean>(false);
-    proyectoSeleccionado: ModelSignal<ListProyectoDTO | null> = model<ListProyectoDTO | null>(null);
 
-    readonly estados: WritableSignal<string[]> = signal(Object.values(EstadosProyectosEnum));
-    readonly clientes: WritableSignal<ListClienteDTO[]> = signal<ListClienteDTO[]>([]);
+  visible: ModelSignal<boolean> = model(false);
+  dialogClientesVisible: WritableSignal<boolean> = signal(false);
+  proyectoSeleccionado: ModelSignal<ListProyectoDTO | null> = model<ListProyectoDTO | null>(null);
 
-    private readonly messageService: MessageService = inject(MessageService);
-    private readonly gestionProyectoApiClient = inject(GestionProyectoApiClient);
-    private readonly clientesListadoApiClient: ClientesListadoApiClient = inject(ClientesListadoApiClient);
-    private readonly authStore: AuthStore = inject(AuthStore);
+  estados: WritableSignal<string[]> = signal(Object.values(EstadosProyectosEnum));
+  clientes: WritableSignal<ListClienteDTO[]> = signal([]);
 
-    header: Signal<string> = computed(() => {
-        if (this.proyectoSeleccionado()) {
-            return "Editar Proyecto // Estudio Fluido Digital";
-        }
-        return "Crear Proyecto // Estudio Fluido Digital";
+  private messageService = inject(MessageService);
+  private gestionProyectoApiClient = inject(GestionProyectoApiClient);
+  private clientesListadoApiClient = inject(ClientesListadoApiClient);
+
+  header: Signal<string> = computed(() =>
+    this.proyectoSeleccionado()
+      ? "Editar Proyecto"
+      : "Crear Proyecto"
+  );
+
+  form: FormGroup = new FormGroup({
+    nombre: new FormControl("", [Validators.required]),
+    cliente: new FormControl(null),
+    estado: new FormControl(EstadosProyectosEnum.ACTIVO)
+  });
+
+  constructor() {
+
+    effect(() => {
+      if (this.proyectoSeleccionado()) {
+        this.form.patchValue({
+          nombre: this.proyectoSeleccionado()?.nombre,
+          cliente: this.proyectoSeleccionado()?.cliente || null,
+          estado: this.proyectoSeleccionado()?.estado
+        });
+      } else {
+        this.form.reset({
+          nombre: "",
+          cliente: null,
+          estado: EstadosProyectosEnum.ACTIVO
+        });
+      }
     });
 
-    readonly form: FormGroup = new FormGroup({
-        nombre: new FormControl("", [Validators.required]),
-        cliente: new FormControl(null),
-        estado: new FormControl(null)
-    });
-
-    constructor() {
-        effect(() => {
-            if (this.proyectoSeleccionado()) {
-                this.form.patchValue({
-                    nombre: this.proyectoSeleccionado()?.nombre,
-                    cliente: this.proyectoSeleccionado()?.cliente || null,
-                    estado: this.proyectoSeleccionado()?.estado
-                });
-            }
-            else {
-                this.form.reset({
-                    nombre: "",
-                    cliente: null,
-                    estado: EstadosProyectosEnum.ACTIVO
-                });
-            }
-        });
-
-        effect(() => {
-            if (!this.dialogClientesVisible()) {
-                this.refrescarClientes();
-            }
-        });
-    }
-
-    ngOnInit(): void {
+    effect(() => {
+      if (!this.dialogClientesVisible()) {
         this.refrescarClientes();
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.refrescarClientes();
+  }
+
+  refrescarClientes(): void {
+    this.clientesListadoApiClient.buscarClientes(EstadosClientesEnum.ACTIVO).subscribe({
+      next: (data) => this.clientes.set(data),
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar clientes'
+        });
+      }
+    });
+  }
+
+  cerrarDialog(): void {
+    this.proyectoSeleccionado.set(null);
+    this.visible.set(false);
+  }
+
+  guardarProyecto(): void {
+
+    if (!this.form.valid) {
+      this.form.markAllAsTouched();
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Complete los campos obligatorios'
+      });
+      return;
     }
 
-    refrescarClientes(): void {
-        this.clientesListadoApiClient.buscarClientes(EstadosClientesEnum.ACTIVO).subscribe({
-            next: (data) => {
-                this.clientes.set(data);
-            },
-            error: (error) => {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al obtener los clientes activos.' });
-            }
+    const value = this.form.getRawValue();
+
+    if (this.proyectoSeleccionado()) {
+
+      const dto: UpdateProyectoDto = {
+        nombre: value.nombre,
+        idCliente: value.cliente ? value.cliente.id : null,
+        estado: value.estado
+      };
+
+      this.gestionProyectoApiClient.actualizarProyecto(this.proyectoSeleccionado()!.id, dto)
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'OK',
+              detail: 'Proyecto actualizado'
+            });
+            this.cerrarDialog();
+          }
+        });
+
+    } else {
+
+      const dto: CreateProyectoDTO = {
+        nombre: value.nombre,
+        idCliente: value.cliente ? value.cliente.id : null
+      };
+
+      this.gestionProyectoApiClient.crearProyecto(dto)
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'OK',
+              detail: 'Proyecto creado'
+            });
+            this.cerrarDialog();
+          }
         });
     }
+  }
 
-    cerrarDialog(): void {
-        this.proyectoSeleccionado.set(null);
-        this.visible.set(false);
-    }
-
-    guardarProyecto(): void {
-        if (!this.form.valid) {
-            this.form.markAllAsTouched();
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Por favor, complete todos los campos requeridos.' });
-            return;
-        }
-
-        const formRawValue = this.form.getRawValue();
-        const rolUsuarioActual = sessionStorage.getItem("userRole") || "CREATIVO";
-
-        if (this.proyectoSeleccionado()) {
-            const dto: UpdateProyectoDto & { userRole: string } = {
-                nombre: formRawValue.nombre,
-                idCliente: formRawValue.cliente ? formRawValue.cliente.id : null,
-                estado: formRawValue.estado,
-                userRole: rolUsuarioActual
-            };
-
-            this.gestionProyectoApiClient.actualizarProyecto(this.proyectoSeleccionado()?.id!, dto).subscribe({
-                next: () => {
-                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Proyecto actualizado correctamente en ControlFluido.' });
-                    this.cerrarDialog();
-                },
-                error: (err) => {
-                    let detail = err.error?.message || "Ha ocurrido un error al actualizar el proyecto.";
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: detail });
-                }
-            });
-        } else {
-            const dto: CreateProyectoDTO = {
-                nombre: formRawValue.nombre,
-                idCliente: formRawValue.cliente ? formRawValue.cliente.id : null
-            };
-
-            this.gestionProyectoApiClient.crearProyecto(dto).subscribe({
-                next: () => {
-                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Proyecto creado correctamente.' });
-                    this.cerrarDialog();
-                },
-                error: (err) => {
-                    let detail = err.error?.message || "Ha ocurrido un error al crear el proyecto.";
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: detail });
-                }
-            });
-        }
-    }
-
-    gestionarClientes(): void {
-        this.dialogClientesVisible.set(true);
-    }
+  gestionarClientes(): void {
+    this.dialogClientesVisible.set(true);
+  }
 }

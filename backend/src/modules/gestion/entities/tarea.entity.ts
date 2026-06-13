@@ -1,25 +1,41 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { EstadosTareasEnum } from "../enums/estados-tareas.enum";
-import { Proyecto } from "./proyecto.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Relation,
+} from 'typeorm';
 
-@Entity({ name: "tareas" })
+import { Proyecto } from './proyecto.entity';
+import { EstadosTareasEnum } from '../enums/estados-tareas.enum';
+
+@Entity('tareas')
 export class Tarea {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn({ name: "id" })
-    id!: number;
+  @Column({ type: 'text' })
+  descripcion: string;
 
-    @Column()
-    descripcion!: string;
+  @Column({
+    type: 'enum',
+    enum: EstadosTareasEnum,
+    default: EstadosTareasEnum.PENDIENTE,
+  })
+  estado: EstadosTareasEnum;
 
-    @Column({ name: "estado", type: "enum", enum: EstadosTareasEnum })
-    estado!: EstadosTareasEnum;
+  @ManyToOne(() => Proyecto, (proyecto) => proyecto.tareas, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'proyecto_id' })
+  proyecto: Relation<Proyecto>;
 
-    @Column({ name: "id_proyecto" })
-    idProyecto!: number;
+  @CreateDateColumn({ name: 'fecha_creacion' })
+  fechaCreacion: Date;
 
-    @ManyToOne(()=>Proyecto)
-    @JoinColumn({name:"id_proyecto"})
-    proyecto!: Proyecto
-
-
+  @UpdateDateColumn({ name: 'fecha_actualizacion' })
+  fechaActualizacion: Date;
 }

@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'gestor-de-proyectos',
+      name: 'gestor-de-proyectos-api', 
       script: 'dist/main.js',
       env: {
         NODE_ENV: 'production',
@@ -10,8 +10,7 @@ module.exports = {
         DB_PORT: 5432,
         DB_USERNAME: 'admin_controlfluido',
         DB_PASSWORD: 'IntegradorAM',
-        DB_NAME: 'gestor_de_proyectos',
-        DB_LOGGING: 'false',
+        DB_NAME: 'control_fluido_db', 
         SWAGGER_HABILITADO: false,
         JWT_SECRET: "ControlFluido_SecretKey_2026"
       },

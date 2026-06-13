@@ -1,0 +1,14 @@
+{
+  "name": "integradordaw",
+  "private": true,
+  "scripts": {
+    "prepare:backend": "cd backend && npm install",
+    "prepare:frontend": "cd frontend && npm install",
+    "start:backend": "cd backend && npm run start:dev",
+    "start:frontend": "cd frontend && ng serve --port 4200 --open",
+    "dev": "npm run prepare:backend && npm run prepare:frontend && concurrently \"npm run start:backend\" \"npm run start:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

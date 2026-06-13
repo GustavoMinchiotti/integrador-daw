@@ -1,29 +1,48 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Index } from "typeorm";
-import { EstadosProyectosEnum } from "../enums/estados-proyectos.enum";
-import { Cliente } from "./cliente.entity";
-import { Tarea } from "./tarea.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Relation,
+} from 'typeorm';
 
-@Entity({ name: "proyectos" })
-@Index(["nombre"])
+import { Tarea } from './tarea.entity';
+import { Cliente } from './cliente.entity';
+
+@Entity('proyectos')
 export class Proyecto {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn()
-    id!: number;
+  @Column({ type: 'varchar', length: 255 })
+  nombre: string;
 
-    @Column()
-    nombre!: string;
+  @Column({ type: 'text', nullable: true })
+  descripcion: string;
 
-    @Index()
-    @Column({ type: 'enum', enum: EstadosProyectosEnum })
-    estado!: EstadosProyectosEnum
+  @Column({ type: 'varchar', length: 50, default: 'activo' })
+  estado: string;
 
-    @Column({ name: "id_cliente", nullable: true })
-    idCliente!: number | null;
+  // ✅ Relación con Cliente
+  @ManyToOne(() => Cliente, (cliente) => cliente.proyectos, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'id_cliente' })
+  cliente: Relation<Cliente>;
 
-    @ManyToOne(() => Cliente, { nullable: true })
-    @JoinColumn({ name: "id_cliente" })
-    cliente!: Cliente | null;
+  // ✅ Relación con Tareas
+  @OneToMany(() => Tarea, (tarea) => tarea.proyecto, {
+    cascade: true,
+  })
+  tareas: Relation<Tarea[]>;
 
-    @OneToMany(() => Tarea, (tarea) => tarea.proyecto)
-    tareas!: Tarea[]
+  @CreateDateColumn({ name: 'fecha_creacion' })
+  fechaCreacion: Date;
+
+  @UpdateDateColumn({ name: 'fecha_actualizacion' })
+  fechaActualizacion: Date;
 }

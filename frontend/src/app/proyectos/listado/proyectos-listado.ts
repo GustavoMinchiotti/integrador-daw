@@ -17,19 +17,25 @@ import { CommonModule } from "@angular/common";
   imports: [TableModule, ButtonModule, Template, TooltipModule, GestionProyecto, FormsModule, CommonModule]
 })
 export class ProyectosListado implements OnInit {
+
   private readonly messageService: MessageService = inject(MessageService);
   private readonly proyectosListadoApiClient: ProyectosListadoApiClient = inject(ProyectosListadoApiClient);
 
   proyectos: WritableSignal<ListProyectoDTO[]> = signal([]);
-  dialogVisible: WritableSignal<boolean> = signal(false);
-  proyectoSeleccionado: WritableSignal<ListProyectoDTO | null> = signal<ListProyectoDTO | null>(null);
+  dialogVisible = signal(false);
+  proyectoSeleccionado = signal<ListProyectoDTO | null>(null);
 
-  // Nuevas señales para el control de búsqueda avanzada y paginación
+  // ✅ Filtros
   searchQuery = signal<string>('');
   estadoFiltro = signal<string>('');
+
+  // ✅ Paginación
   currentPage = signal<number>(1);
   totalPages = signal<number>(1);
   limit = signal<number>(5);
+
+  // ✅ Para evitar llamadas excesivas al backend
+  private debounceTimer: any;
 
   constructor() {
     effect(() => {
@@ -44,6 +50,13 @@ export class ProyectosListado implements OnInit {
   }
 
   refrescarProyectos(): void {
+    console.log('📡 Filtros enviados:', {
+      nombre: this.searchQuery(),
+      estado: this.estadoFiltro(),
+      page: this.currentPage(),
+      limit: this.limit()
+    });
+
     this.proyectosListadoApiClient.buscarProyectos(
       this.searchQuery(),
       this.estadoFiltro(),
@@ -51,21 +64,39 @@ export class ProyectosListado implements OnInit {
       this.limit()
     ).subscribe({
       next: (response) => {
-        // Adaptado al formato paginado del backend
-        this.proyectos.set(response.data || response);
-        if (response.lastPage) {
+
+        // ✅ Manejo seguro de respuesta
+        const data = response?.data ?? response ?? [];
+
+        this.proyectos.set(data);
+
+        // ✅ Paginación segura
+        if (response?.lastPage) {
           this.totalPages.set(response.lastPage);
+        } else {
+          this.totalPages.set(1);
         }
+
+        console.log('✅ Proyectos cargados:', data);
+
       },
-      error: (error) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al obtener los proyectos de ControlFluido' });
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron cargar los proyectos'
+        });
       }
     });
   }
 
   buscarOFiltrar(): void {
-    this.currentPage.set(1); // Reiniciar paginación al filtrar
-    this.refrescarProyectos();
+    clearTimeout(this.debounceTimer);
+
+    this.debounceTimer = setTimeout(() => {
+      this.currentPage.set(1);
+      this.refrescarProyectos();
+    }, 300); // ✅ mejora UX
   }
 
   cambiarPagina(nuevaPagina: number): void {
@@ -80,8 +111,8 @@ export class ProyectosListado implements OnInit {
   }
 
   editarProyecto(proyecto: ListProyectoDTO): void {
-    this.dialogVisible.set(true);
     this.proyectoSeleccionado.set(proyecto);
+    this.dialogVisible.set(true);
   }
 
   gestionarTareas(proyecto: ListProyectoDTO): void {
