@@ -1,6 +1,10 @@
 <app-template>
   <section class="board-heading">
-    <div>
+    <div class="heading-copy">
+      <a routerLink="/proyectos" class="back-link" aria-label="Volver al listado de proyectos">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <span>Volver a proyectos</span>
+      </a>
       <p class="section-index">02 / FLUJO DE TRABAJO</p>
       <h1>{{ nombreProyecto() }}</h1>
       <p class="board-subtitle">Tablero operativo de tareas</p>
@@ -9,82 +13,208 @@
     <p-button icon="pi pi-plus" label="Nueva tarea" (click)="agregarTarea()"></p-button>
   </section>
 
-  <section class="kanban-resumen" aria-label="Resumen de tareas">
-    <div class="kanban-metrica total"><span>Total</span><strong>{{ totalTareas() }}</strong></div>
-    <div class="kanban-metrica pendiente"><span>Pendientes</span><strong>{{ totalPendientes() }}</strong></div>
-    <div class="kanban-metrica progreso"><span>En progreso</span><strong>{{ totalEnProgreso() }}</strong></div>
-    <div class="kanban-metrica finalizada"><span>Finalizadas</span><strong>{{ totalFinalizadas() }}</strong></div>
-    <div class="kanban-metrica avance"><span>Avance</span><strong>{{ porcentajeFinalizadas() }}%</strong></div>
-  </section>
-
-  <div class="kanban-toolbar">
-    <label>
-      <i class="pi pi-search" aria-hidden="true"></i>
-      <input type="search" placeholder="Buscar en el tablero" [ngModel]="filtroTareas()"
-        (ngModelChange)="filtroTareas.set($event)" aria-label="Buscar tarea por descripción" />
-    </label>
-  </div>
-
-  <section class="kanban-board" aria-label="Tablero Kanban">
-    <div class="kanban-column pendiente">
-      <header class="column-heading"><span>Pendiente</span><strong>{{ totalPendientes() }}</strong></header>
-      <div class="column-body">
-        @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
-          <article class="task-card">
-            <span class="task-id">T-{{ tarea.id }}</span>
-            <p>{{ tarea.descripcion }}</p>
-            <div class="card-actions">
-              <p-button icon="pi pi-pencil" severity="secondary" [text]="true" pTooltip="Editar tarea"
-                aria-label="Editar tarea" (click)="editarTarea(tarea)"></p-button>
-              <p-button icon="pi pi-arrow-right" severity="secondary" pTooltip="Mover a en progreso"
-                aria-label="Mover a en progreso" (click)="actualizarEstadoTarea(tarea, $any('EN_PROGRESO'))"></p-button>
-            </div>
-          </article>
-        } @empty {
-          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Sin tareas pendientes</div>
-        }
+  @if (loading()) {
+    <section class="board-loading" aria-live="polite">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      <span>Sincronizando tablero</span>
+    </section>
+  } @else {
+    <section class="kanban-resumen" aria-label="Resumen de tareas">
+      <div class="kanban-metrica total">
+        <span>Total</span><strong>{{ totalTareas() }}</strong>
       </div>
+      <div class="kanban-metrica pendiente">
+        <span>Pendientes</span><strong>{{ totalPendientes() }}</strong>
+      </div>
+      <div class="kanban-metrica progreso">
+        <span>En progreso</span><strong>{{ totalEnProgreso() }}</strong>
+      </div>
+      <div class="kanban-metrica finalizada">
+        <span>Finalizadas</span><strong>{{ totalFinalizadas() }}</strong>
+      </div>
+      <div class="kanban-metrica avance">
+        <span>Avance</span><strong>{{ porcentajeFinalizadas() }}%</strong>
+      </div>
+    </section>
+
+    <div class="kanban-toolbar">
+      <p class="result-count" aria-live="polite">
+        <strong>{{ totalVisibles() }}</strong>
+        {{ totalVisibles() === 1 ? 'tarea visible' : 'tareas visibles' }}
+        @if (filtroActivo()) {
+          <span>de {{ totalTareas() }}</span>
+        }
+      </p>
+      <label class="search-control">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          type="search"
+          placeholder="Buscar en el tablero"
+          [ngModel]="filtroTareas()"
+          (ngModelChange)="filtroTareas.set($event)"
+          aria-label="Buscar tarea por descripción"
+        />
+        @if (filtroActivo()) {
+          <p-button
+            icon="pi pi-times"
+            [text]="true"
+            severity="secondary"
+            pTooltip="Limpiar búsqueda"
+            aria-label="Limpiar búsqueda"
+            (click)="limpiarFiltro()"
+          ></p-button>
+        }
+      </label>
     </div>
 
-    <div class="kanban-column progreso">
-      <header class="column-heading"><span>En progreso</span><strong>{{ totalEnProgreso() }}</strong></header>
-      <div class="column-body">
-        @for (tarea of getTareasPorEstado('EN_PROGRESO'); track tarea.id) {
-          <article class="task-card">
-            <span class="task-id">T-{{ tarea.id }}</span>
-            <p>{{ tarea.descripcion }}</p>
-            <div class="card-actions">
-              <p-button icon="pi pi-arrow-left" severity="secondary" [text]="true" pTooltip="Volver a pendiente"
-                aria-label="Volver a pendiente" (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"></p-button>
-              <p-button icon="pi pi-check" severity="secondary" pTooltip="Marcar como finalizada"
-                aria-label="Marcar como finalizada" (click)="actualizarEstadoTarea(tarea, $any('FINALIZADA'))"></p-button>
-            </div>
-          </article>
-        } @empty {
-          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Nada en curso</div>
-        }
-      </div>
-    </div>
+    @if (filtroActivo() && totalVisibles() === 0) {
+      <section class="no-results" aria-live="polite">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <div>
+          <strong>Sin coincidencias</strong>
+          <span>Probá con otra descripción o limpiá la búsqueda.</span>
+        </div>
+        <p-button
+          label="Limpiar búsqueda"
+          icon="pi pi-times"
+          severity="secondary"
+          (click)="limpiarFiltro()"
+        ></p-button>
+      </section>
+    } @else {
+      <section class="kanban-board" aria-label="Tablero Kanban">
+        <div class="kanban-column pendiente">
+          <header class="column-heading">
+            <span>Pendiente</span><strong>{{ totalPendientes() }}</strong>
+          </header>
+          <div class="column-body">
+            @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
+              <article class="task-card">
+                <span class="task-id">T-{{ tarea.id }}</span>
+                <p>{{ tarea.descripcion }}</p>
+                <div class="card-actions">
+                  <p-button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    pTooltip="Editar tarea"
+                    [disabled]="actualizandoTareaId() !== null"
+                    aria-label="Editar tarea"
+                    (click)="editarTarea(tarea)"
+                  ></p-button>
+                  <p-button
+                    icon="pi pi-arrow-right"
+                    severity="secondary"
+                    [loading]="estaActualizando(tarea, $any('EN_PROGRESO'))"
+                    [disabled]="actualizandoTareaId() !== null"
+                    pTooltip="Mover a en progreso"
+                    aria-label="Mover a en progreso"
+                    (click)="actualizarEstadoTarea(tarea, $any('EN_PROGRESO'))"
+                  ></p-button>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty-column">
+                <i class="pi pi-circle" aria-hidden="true"></i>Sin tareas pendientes
+              </div>
+            }
+          </div>
+        </div>
 
-    <div class="kanban-column finalizada">
-      <header class="column-heading"><span>Finalizada</span><strong>{{ totalFinalizadas() }}</strong></header>
-      <div class="column-body">
-        @for (tarea of getTareasPorEstado('FINALIZADA'); track tarea.id) {
-          <article class="task-card completada">
-            <span class="task-id">T-{{ tarea.id }}</span>
-            <p>{{ tarea.descripcion }}</p>
-            <div class="card-actions">
-              <p-button icon="pi pi-refresh" severity="secondary" [text]="true" pTooltip="Reabrir tarea"
-                aria-label="Reabrir tarea" (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"></p-button>
-            </div>
-          </article>
-        } @empty {
-          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Sin entregas todavía</div>
-        }
-      </div>
-    </div>
-  </section>
+        <div class="kanban-column progreso">
+          <header class="column-heading">
+            <span>En progreso</span><strong>{{ totalEnProgreso() }}</strong>
+          </header>
+          <div class="column-body">
+            @for (tarea of getTareasPorEstado('EN_PROGRESO'); track tarea.id) {
+              <article class="task-card">
+                <span class="task-id">T-{{ tarea.id }}</span>
+                <p>{{ tarea.descripcion }}</p>
+                <div class="card-actions">
+                  <p-button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    pTooltip="Editar tarea"
+                    [disabled]="actualizandoTareaId() !== null"
+                    aria-label="Editar tarea"
+                    (click)="editarTarea(tarea)"
+                  ></p-button>
+                  <p-button
+                    icon="pi pi-arrow-left"
+                    severity="secondary"
+                    [text]="true"
+                    [loading]="estaActualizando(tarea, $any('PENDIENTE'))"
+                    [disabled]="actualizandoTareaId() !== null"
+                    pTooltip="Volver a pendiente"
+                    aria-label="Volver a pendiente"
+                    (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"
+                  ></p-button>
+                  <p-button
+                    icon="pi pi-check"
+                    severity="secondary"
+                    [loading]="estaActualizando(tarea, $any('FINALIZADA'))"
+                    [disabled]="actualizandoTareaId() !== null"
+                    pTooltip="Marcar como finalizada"
+                    aria-label="Marcar como finalizada"
+                    (click)="actualizarEstadoTarea(tarea, $any('FINALIZADA'))"
+                  ></p-button>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty-column">
+                <i class="pi pi-circle" aria-hidden="true"></i>Nada en curso
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="kanban-column finalizada">
+          <header class="column-heading">
+            <span>Finalizada</span><strong>{{ totalFinalizadas() }}</strong>
+          </header>
+          <div class="column-body">
+            @for (tarea of getTareasPorEstado('FINALIZADA'); track tarea.id) {
+              <article class="task-card completada">
+                <span class="task-id">T-{{ tarea.id }}</span>
+                <p>{{ tarea.descripcion }}</p>
+                <div class="card-actions">
+                  <p-button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    pTooltip="Editar tarea"
+                    [disabled]="actualizandoTareaId() !== null"
+                    aria-label="Editar tarea"
+                    (click)="editarTarea(tarea)"
+                  ></p-button>
+                  <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [text]="true"
+                    [loading]="estaActualizando(tarea, $any('PENDIENTE'))"
+                    [disabled]="actualizandoTareaId() !== null"
+                    pTooltip="Reabrir tarea"
+                    aria-label="Reabrir tarea"
+                    (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"
+                  ></p-button>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty-column">
+                <i class="pi pi-circle" aria-hidden="true"></i>Sin entregas todavía
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  }
 </app-template>
 
-<app-gestion-tarea [(visible)]="dialogVisible" [(tareaSeleccionada)]="tareaSeleccionada"
-  [idProyecto]="idProyecto" (onSaved)="cargarTareas()"></app-gestion-tarea>
+<app-gestion-tarea
+  [(visible)]="dialogVisible"
+  [(tareaSeleccionada)]="tareaSeleccionada"
+  [idProyecto]="idProyecto"
+  (onSaved)="cargarTareas()"
+></app-gestion-tarea>

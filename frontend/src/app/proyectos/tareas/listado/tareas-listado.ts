@@ -1,21 +1,21 @@
-import { Component, computed, inject, OnInit, signal, WritableSignal } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
-import { MessageService } from "primeng/api";
-import { ListTareaDTO } from "./list-tarea-dto";
-import { HttpClient } from "@angular/common/http";
-import { CommonModule } from "@angular/common";
-import { ButtonModule } from "primeng/button";
-import { Template } from "../../../template/template";
-import { DialogModule } from "primeng/dialog";
-import { TooltipModule } from "primeng/tooltip";
-import { GestionTarea } from "../gestion/gestion-tarea";
-import { EstadosTareasEnum } from "../estados-tareas-enum";
-import { FormsModule } from "@angular/forms";
+import { Component, computed, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ListTareaDTO } from './list-tarea-dto';
+import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { Template } from '../../../template/template';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { GestionTarea } from '../gestion/gestion-tarea';
+import { EstadosTareasEnum } from '../estados-tareas-enum';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: "app-tareas-listado",
-  templateUrl: "./tareas-listado.html",
-  styleUrls: ["./tareas-listado.css"],
+  selector: 'app-tareas-listado',
+  templateUrl: './tareas-listado.html',
+  styleUrls: ['./tareas-listado.css'],
   imports: [
     CommonModule,
     ButtonModule,
@@ -23,23 +23,34 @@ import { FormsModule } from "@angular/forms";
     DialogModule,
     TooltipModule,
     GestionTarea,
-    FormsModule
-  ]
+    FormsModule,
+    RouterLink,
+  ],
 })
 export class TareasListado implements OnInit {
-
   private readonly route = inject(ActivatedRoute);
   private readonly http = inject(HttpClient);
   private readonly messageService = inject(MessageService);
 
   idProyecto!: number;
-  nombreProyecto = signal<string>("Proyecto");
+  nombreProyecto = signal<string>('Proyecto');
 
   tareas: WritableSignal<ListTareaDTO[]> = signal([]);
 
   dialogVisible = signal<boolean>(false);
   tareaSeleccionada = signal<ListTareaDTO | null>(null);
   filtroTareas = signal<string>('');
+  loading = signal<boolean>(true);
+  actualizandoTareaId = signal<number | null>(null);
+  estadoDestino = signal<EstadosTareasEnum | null>(null);
+  tareasVisibles = computed(() => {
+    const filtro = this.filtroTareas().trim().toLowerCase();
+    return this.tareas().filter(
+      (tarea) => !filtro || tarea.descripcion.toLowerCase().includes(filtro),
+    );
+  });
+  totalVisibles = computed(() => this.tareasVisibles().length);
+  filtroActivo = computed(() => this.filtroTareas().trim().length > 0);
   totalTareas = computed(() => this.tareas().length);
   totalPendientes = computed(() => this.contarTareas(EstadosTareasEnum.PENDIENTE));
   totalEnProgreso = computed(() => this.contarTareas(EstadosTareasEnum.EN_PROGRESO));
@@ -62,70 +73,81 @@ export class TareasListado implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo cargar el proyecto.'
-        })
+          detail: 'No se pudo cargar el proyecto.',
+        }),
     });
   }
 
   cargarTareas(): void {
+    this.loading.set(true);
     this.http.get<ListTareaDTO[]>(`/api/v1/proyectos/${this.idProyecto}/tareas`).subscribe({
       next: (data) => {
         this.tareas.set(data);
+        this.loading.set(false);
       },
-      error: () =>
+      error: () => {
+        this.loading.set(false);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Error al sincronizar las tareas.'
-        })
+          detail: 'Error al sincronizar las tareas.',
+        });
+      },
     });
   }
 
   getTareasPorEstado(estado: string): ListTareaDTO[] {
-    const filtro = this.filtroTareas().trim().toLowerCase();
+    return this.tareasVisibles().filter((tarea) => tarea.estado === estado);
+  }
 
-    return this.tareas().filter((t) => {
-      const coincideEstado = t.estado === estado;
-      const coincideTexto = !filtro || t.descripcion.toLowerCase().includes(filtro);
-      return coincideEstado && coincideTexto;
+  actualizarEstadoTarea(tarea: ListTareaDTO, nuevoEstado: EstadosTareasEnum): void {
+    if (this.actualizandoTareaId() !== null) {
+      return;
+    }
+
+    this.actualizandoTareaId.set(tarea.id);
+    this.estadoDestino.set(nuevoEstado);
+
+    const body = {
+      descripcion: tarea.descripcion,
+      estado: nuevoEstado,
+    };
+
+    this.http.put(`/api/v1/proyectos/${this.idProyecto}/tareas/${tarea.id}`, body).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Tablero actualizado',
+          detail: `Tarea movida a ${this.etiquetaEstado(nuevoEstado)}`,
+        });
+
+        this.tareas.update((tareas) =>
+          tareas.map((item) => (item.id === tarea.id ? { ...item, estado: nuevoEstado } : item)),
+        );
+        this.actualizandoTareaId.set(null);
+        this.estadoDestino.set(null);
+      },
+      error: (err) => {
+        this.actualizandoTareaId.set(null);
+        this.estadoDestino.set(null);
+        const errorMsg = err.error?.message || 'Error al actualizar tarea';
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMsg,
+        });
+      },
     });
   }
 
-  actualizarEstadoTarea(
-  tarea: ListTareaDTO,
-  nuevoEstado: EstadosTareasEnum
-  ): void {
+  limpiarFiltro(): void {
+    this.filtroTareas.set('');
+  }
 
-  const body = {
-    descripcion: tarea.descripcion,
-    estado: nuevoEstado
-  };
-
-  this.http.put(
-    `/api/v1/proyectos/${this.idProyecto}/tareas/${tarea.id}`,
-    body
-  ).subscribe({
-    next: () => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Tablero actualizado',
-        detail: `Tarea movida a ${nuevoEstado}`
-      });
-
-      this.cargarTareas();
-    },
-    error: (err) => {
-      const errorMsg =
-        err.error?.message || 'Error al actualizar tarea';
-
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: errorMsg
-      });
-    }
-  });
-}
+  estaActualizando(tarea: ListTareaDTO, estado: EstadosTareasEnum): boolean {
+    return this.actualizandoTareaId() === tarea.id && this.estadoDestino() === estado;
+  }
 
   agregarTarea(): void {
     this.tareaSeleccionada.set(null);
@@ -139,5 +161,16 @@ export class TareasListado implements OnInit {
 
   private contarTareas(estado: EstadosTareasEnum): number {
     return this.tareas().filter((tarea) => tarea.estado === estado).length;
+  }
+
+  private etiquetaEstado(estado: EstadosTareasEnum): string {
+    const etiquetas: Record<EstadosTareasEnum, string> = {
+      [EstadosTareasEnum.PENDIENTE]: 'pendiente',
+      [EstadosTareasEnum.EN_PROGRESO]: 'en progreso',
+      [EstadosTareasEnum.FINALIZADA]: 'finalizada',
+      [EstadosTareasEnum.BAJA]: 'baja',
+    };
+
+    return etiquetas[estado];
   }
 }
