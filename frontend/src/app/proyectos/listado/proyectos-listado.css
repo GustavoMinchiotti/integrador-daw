@@ -214,6 +214,192 @@ h1 {
     margin-left: 0.25rem;
 }
 
+.pulso-trigger {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--paper);
+    cursor: pointer;
+    display: inline-flex;
+    gap: 0.55rem;
+    padding: 0.25rem 0;
+    text-align: left;
+}
+
+.pulso-trigger:hover strong {
+    color: var(--coral);
+}
+
+.pulso-trigger > span:last-child,
+.pulso-trigger strong,
+.pulso-trigger small {
+    display: block;
+}
+
+.pulso-trigger strong {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.pulso-trigger small {
+    color: var(--muted);
+    font-size: 0.62rem;
+    margin-top: 0.1rem;
+}
+
+.pulso-dot {
+    background: var(--muted);
+    border-radius: 50%;
+    height: 0.7rem;
+    position: relative;
+    width: 0.7rem;
+}
+
+.pulso-dot::after {
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    content: "";
+    inset: -0.3rem;
+    opacity: 0.35;
+    position: absolute;
+}
+
+.pulso-trigger[data-nivel="ESTABLE"] .pulso-dot { background: var(--success); color: var(--success); }
+.pulso-trigger[data-nivel="ATENCION"] .pulso-dot { background: var(--acid); color: var(--acid); }
+.pulso-trigger[data-nivel="CRITICO"] .pulso-dot { background: var(--danger); color: var(--danger); }
+.pulso-trigger[data-nivel="CERRADO"] .pulso-dot { background: var(--cyan); color: var(--cyan); }
+
+.pulso-detalle {
+    padding-top: 0.25rem;
+}
+
+.pulso-encabezado {
+    align-items: end;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+}
+
+.pulso-kicker,
+.pulso-encabezado > div > strong,
+.pulso-score,
+.pulso-score small {
+    display: block;
+}
+
+.pulso-kicker,
+.proxima-accion span {
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+}
+
+.pulso-encabezado > div > strong {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+}
+
+.pulso-score {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.pulso-score small {
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.6rem;
+    margin-top: 0.2rem;
+    text-align: right;
+}
+
+.avance-barra {
+    background: var(--row-border);
+    height: 0.45rem;
+    margin-top: 1.25rem;
+    overflow: hidden;
+}
+
+.avance-barra span {
+    background: var(--coral);
+    display: block;
+    height: 100%;
+    min-width: 0.2rem;
+}
+
+.avance-etiqueta {
+    color: var(--muted);
+    font-size: 0.7rem;
+    margin: 0.4rem 0 1.25rem;
+    text-transform: uppercase;
+}
+
+.pulso-datos {
+    border: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.pulso-datos div {
+    border-right: 1px solid var(--line);
+    padding: 0.8rem;
+}
+
+.pulso-datos div:last-child {
+    border-right: 0;
+}
+
+.pulso-datos strong,
+.pulso-datos span {
+    display: block;
+}
+
+.pulso-datos strong {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+}
+
+.pulso-datos span {
+    color: var(--muted);
+    font-size: 0.58rem;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+}
+
+.proxima-accion {
+    align-items: flex-start;
+    background: var(--table-heading);
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 1rem;
+}
+
+.proxima-accion i {
+    color: var(--acid);
+}
+
+.proxima-accion strong {
+    display: block;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+}
+
+.pulso-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.pulso-detalle[data-nivel="ESTABLE"] .avance-barra span { background: var(--success); }
+.pulso-detalle[data-nivel="ATENCION"] .avance-barra span { background: var(--acid); }
+.pulso-detalle[data-nivel="CRITICO"] .avance-barra span { background: var(--danger); }
+.pulso-detalle[data-nivel="CERRADO"] .avance-barra span { background: var(--cyan); }
+
 .empty-state {
     padding: 4rem 1rem !important;
     text-align: center;
@@ -354,5 +540,17 @@ h1 {
 
     .paginacion-botones {
         flex-wrap: wrap;
+    }
+
+    .pulso-datos {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .pulso-datos div:nth-child(2) {
+        border-right: 0;
+    }
+
+    .pulso-datos div:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line);
     }
 }

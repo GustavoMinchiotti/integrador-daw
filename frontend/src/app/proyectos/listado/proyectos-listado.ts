@@ -11,12 +11,13 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { finalize } from "rxjs";
 import { Router } from "@angular/router";
+import { DialogModule } from "primeng/dialog";
 
 @Component({
   selector: "app-proyectos-listado",
   templateUrl: "./proyectos-listado.html",
   styleUrls: ["./proyectos-listado.css"],
-  imports: [TableModule, ButtonModule, Template, TooltipModule, GestionProyecto, FormsModule, CommonModule]
+  imports: [TableModule, ButtonModule, Template, TooltipModule, GestionProyecto, FormsModule, CommonModule, DialogModule]
 })
 export class ProyectosListado {
 
@@ -27,6 +28,8 @@ export class ProyectosListado {
   proyectos: WritableSignal<ListProyectoDTO[]> = signal([]);
   dialogVisible = signal(false);
   proyectoSeleccionado = signal<ListProyectoDTO | null>(null);
+  proyectoPulso = signal<ListProyectoDTO | null>(null);
+  pulsoVisible = signal(false);
 
   searchQuery = signal<string>('');
   estadoFiltro = signal<string>('');
@@ -182,6 +185,24 @@ export class ProyectosListado {
 
   gestionarTareas(proyecto: ListProyectoDTO): void {
     void this.router.navigate(['/proyectos', proyecto.id, 'tareas']);
+  }
+
+  verPulso(proyecto: ListProyectoDTO): void {
+    this.proyectoPulso.set(proyecto);
+    this.pulsoVisible.set(true);
+  }
+
+  etiquetaPulso(nivel: string): string {
+    const etiquetas: Record<string, string> = {
+      ESTABLE: 'Estable',
+      ATENCION: 'Atención',
+      CRITICO: 'Crítico',
+      SIN_DATOS: 'Sin datos',
+      CERRADO: 'Cerrado',
+      PAUSADO: 'Pausado',
+    };
+
+    return etiquetas[nivel] ?? nivel;
   }
 
   exportarCsv(): void {

@@ -109,6 +109,7 @@
                 <tr>
                     <th>Proyecto</th>
                     <th>Cliente</th>
+                    <th>Pulso</th>
                     <th>Estado</th>
                     <th class="actions-heading">Acciones</th>
                 </tr>
@@ -119,6 +120,20 @@
                     <td>
                         <span class="project-id">P-{{ proyecto.id }}</span>
                         <strong>{{ proyecto.nombre }}</strong>
+                    </td>
+                    <td>
+                        <button
+                            type="button"
+                            class="pulso-trigger"
+                            [attr.data-nivel]="proyecto.pulso.nivel"
+                            [pTooltip]="proyecto.pulso.recomendacion"
+                            (click)="verPulso(proyecto)">
+                            <span class="pulso-dot" aria-hidden="true"></span>
+                            <span>
+                                <strong>{{ etiquetaPulso(proyecto.pulso.nivel) }}</strong>
+                                <small>{{ proyecto.pulso.puntaje }}/100</small>
+                            </span>
+                        </button>
                     </td>
                     <td>
                         @if (proyecto.cliente) {
@@ -159,7 +174,7 @@
 
             <ng-template #emptymessage>
                 <tr>
-                    <td colspan="4" class="empty-state">
+                    <td colspan="5" class="empty-state">
                         <i class="pi pi-inbox" aria-hidden="true"></i>
                         <strong>Sin coincidencias</strong>
                         <span>Probá con otro nombre o estado.</span>
@@ -243,3 +258,50 @@
     [(visible)]="dialogVisible"
     [(proyectoSeleccionado)]="proyectoSeleccionado">
 </app-gestion-proyecto>
+
+<p-dialog
+    [header]="'Pulso / ' + (proyectoPulso()?.nombre ?? '')"
+    [modal]="true"
+    [visible]="pulsoVisible()"
+    (visibleChange)="pulsoVisible.set($event)"
+    [style]="{ width: 'min(34rem, calc(100vw - 2rem))' }">
+    @if (proyectoPulso(); as proyecto) {
+        <div class="pulso-detalle" [attr.data-nivel]="proyecto.pulso.nivel">
+            <div class="pulso-encabezado">
+                <div>
+                    <span class="pulso-kicker">DIAGNÓSTICO ACTUAL</span>
+                    <strong>{{ etiquetaPulso(proyecto.pulso.nivel) }}</strong>
+                </div>
+                <span class="pulso-score">{{ proyecto.pulso.puntaje }}<small>/100</small></span>
+            </div>
+
+            <div class="avance-barra" aria-label="Avance del proyecto">
+                <span [style.width.%]="proyecto.pulso.avance"></span>
+            </div>
+            <p class="avance-etiqueta">{{ proyecto.pulso.avance }}% de tareas finalizadas</p>
+
+            <div class="pulso-datos">
+                <div><strong>{{ proyecto.pulso.pendientes }}</strong><span>Pendientes</span></div>
+                <div><strong>{{ proyecto.pulso.enProgreso }}</strong><span>En progreso</span></div>
+                <div><strong>{{ proyecto.pulso.finalizadas }}</strong><span>Finalizadas</span></div>
+                <div><strong>{{ proyecto.pulso.diasSinActividad }}</strong><span>Días sin actividad</span></div>
+            </div>
+
+            <div class="proxima-accion">
+                <i class="pi pi-bolt" aria-hidden="true"></i>
+                <div>
+                    <span>PRÓXIMA ACCIÓN</span>
+                    <strong>{{ proyecto.pulso.recomendacion }}</strong>
+                </div>
+            </div>
+
+            <div class="pulso-dialog-actions">
+                <p-button
+                    icon="pi pi-list"
+                    label="Abrir tablero"
+                    (click)="pulsoVisible.set(false); gestionarTareas(proyecto)">
+                </p-button>
+            </div>
+        </div>
+    }
+</p-dialog>

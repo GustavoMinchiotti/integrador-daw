@@ -17,6 +17,19 @@ import { ListClienteDTO } from '../dtos/output/list-cliente.dto';
 import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
 import { ResumenProyectosDTO } from '../dtos/output/resumen-proyectos.dto';
 import { Cliente } from '../entities/cliente.entity';
+import {
+  NivelPulsoProyecto,
+  PulsoProyectoDTO,
+} from '../dtos/output/pulso-proyecto.dto';
+
+type PulsoProyectoRaw = {
+  id: string;
+  totalTareas: string;
+  pendientes: string;
+  enProgreso: string;
+  finalizadas: string;
+  ultimaActividad: string | null;
+};
 
 type ObtenerProyectosParams = {
   search?: string;
@@ -154,6 +167,7 @@ export class ProyectosService {
       .take(limit);
 
     const [proyectos, total] = await query.getManyAndCount();
+    const pulsos = await this.obtenerPulsos(proyectos);
 
     const data = proyectos.map((p) => {
       const dto = new ListProyectoDTO();
@@ -167,6 +181,7 @@ export class ProyectosService {
         dto.cliente.nombre = p.cliente.nombre;
         dto.cliente.estado = p.cliente.estado;
       }
+      dto.pulso = pulsos.get(p.id) ?? this.calcularPulso(p, undefined);
       return dto;
     });
 
@@ -185,6 +200,155 @@ export class ProyectosService {
       lastPage: Math.max(Math.ceil(total / limit), 1),
       resumen,
     };
+  }
+
+  private async obtenerPulsos(
+    proyectos: Proyecto[],
+  ): Promise<Map<number, PulsoProyectoDTO>> {
+    if (!proyectos.length) {
+      return new Map();
+    }
+
+    const filas = await this.repository
+      .createQueryBuilder('proyecto')
+      .leftJoin('proyecto.tareas', 'tarea')
+      .select('proyecto.id', 'id')
+      .addSelect(
+        'COUNT(tarea.id) FILTER (WHERE tarea.estado <> :estadoBaja)',
+        'totalTareas',
+      )
+      .addSelect(
+        'COUNT(tarea.id) FILTER (WHERE tarea.estado = :estadoPendiente)',
+        'pendientes',
+      )
+      .addSelect(
+        'COUNT(tarea.id) FILTER (WHERE tarea.estado = :estadoProgreso)',
+        'enProgreso',
+      )
+      .addSelect(
+        'COUNT(tarea.id) FILTER (WHERE tarea.estado = :estadoFinalizada)',
+        'finalizadas',
+      )
+      .addSelect(
+        'GREATEST(MAX(tarea.fecha_actualizacion), MAX(proyecto.fecha_actualizacion))',
+        'ultimaActividad',
+      )
+      .where('proyecto.id IN (:...ids)', {
+        ids: proyectos.map((proyecto) => proyecto.id),
+      })
+      .setParameters({
+        estadoBaja: 'BAJA',
+        estadoPendiente: 'PENDIENTE',
+        estadoProgreso: 'EN_PROGRESO',
+        estadoFinalizada: 'FINALIZADA',
+      })
+      .groupBy('proyecto.id')
+      .getRawMany<PulsoProyectoRaw>();
+
+    const proyectosPorId = new Map(
+      proyectos.map((proyecto) => [proyecto.id, proyecto]),
+    );
+
+    return new Map(
+      filas.map((fila) => {
+        const id = Number(fila.id);
+        return [
+          id,
+          this.calcularPulso(proyectosPorId.get(id)!, fila),
+        ];
+      }),
+    );
+  }
+
+  private calcularPulso(
+    proyecto: Proyecto,
+    fila?: PulsoProyectoRaw,
+  ): PulsoProyectoDTO {
+    const totalTareas = Number(fila?.totalTareas ?? 0);
+    const pendientes = Number(fila?.pendientes ?? 0);
+    const enProgreso = Number(fila?.enProgreso ?? 0);
+    const finalizadas = Number(fila?.finalizadas ?? 0);
+    const avance = totalTareas
+      ? Math.round((finalizadas / totalTareas) * 100)
+      : 0;
+    const ultimaActividad = fila?.ultimaActividad
+      ? new Date(fila.ultimaActividad)
+      : proyecto.fechaActualizacion;
+    const diasSinActividad = Math.max(
+      Math.floor((Date.now() - ultimaActividad.getTime()) / 86_400_000),
+      0,
+    );
+
+    let nivel: NivelPulsoProyecto;
+    let puntaje = 0;
+    let recomendacion: string;
+
+    if (proyecto.estado === EstadosProyectosEnum.BAJA) {
+      nivel = 'PAUSADO';
+      recomendacion = 'Proyecto fuera del flujo activo. Revisar antes de reactivarlo.';
+    } else if (proyecto.estado === EstadosProyectosEnum.FINALIZADO) {
+      nivel = 'CERRADO';
+      puntaje = avance;
+      recomendacion =
+        pendientes + enProgreso > 0
+          ? `El proyecto cerró con ${pendientes + enProgreso} tarea(s) sin finalizar.`
+          : 'Entrega cerrada y sin trabajo pendiente.';
+    } else if (!totalTareas) {
+      nivel = 'SIN_DATOS';
+      recomendacion = 'Definir la primera tarea para comenzar a medir el avance.';
+    } else {
+      const penalizacionPendientes = Math.round(
+        (pendientes / totalTareas) * 25,
+      );
+      const penalizacionInactividad = Math.round(
+        (Math.min(diasSinActividad, 14) / 14) * 35,
+      );
+      const penalizacionSinFoco = enProgreso === 0 && pendientes > 0 ? 10 : 0;
+      puntaje = Math.max(
+        0,
+        100 - penalizacionPendientes - penalizacionInactividad - penalizacionSinFoco,
+      );
+      nivel = puntaje >= 70 ? 'ESTABLE' : puntaje >= 40 ? 'ATENCION' : 'CRITICO';
+      recomendacion = this.recomendarAccion(
+        nivel,
+        pendientes,
+        enProgreso,
+        diasSinActividad,
+      );
+    }
+
+    return {
+      nivel,
+      puntaje,
+      avance,
+      totalTareas,
+      pendientes,
+      enProgreso,
+      finalizadas,
+      diasSinActividad,
+      recomendacion,
+    };
+  }
+
+  private recomendarAccion(
+    nivel: NivelPulsoProyecto,
+    pendientes: number,
+    enProgreso: number,
+    diasSinActividad: number,
+  ): string {
+    if (nivel === 'CRITICO') {
+      return diasSinActividad >= 7
+        ? `Reactivar el seguimiento: lleva ${diasSinActividad} días sin movimiento.`
+        : 'Reducir el trabajo pendiente y acordar una prioridad inmediata.';
+    }
+
+    if (nivel === 'ATENCION') {
+      return enProgreso === 0 && pendientes > 0
+        ? 'Elegir una tarea pendiente y llevarla a En progreso.'
+        : 'Revisar el tablero y cerrar el trabajo que ya está en curso.';
+    }
+
+    return 'El ritmo es saludable. Mantener foco y frecuencia de actualización.';
   }
 
   async obtenerProyecto(id: number): Promise<ProyectoDTO> {
