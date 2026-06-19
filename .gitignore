@@ -4,7 +4,10 @@ build/
 .angular/
 .cache/
 .env
+.env.*
+!.env.example
 logs/
 *.log
 coverage/
+backups/
 .git
