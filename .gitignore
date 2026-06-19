@@ -10,4 +10,5 @@ logs/
 *.log
 coverage/
 backups/
+.vercel/
 .git
