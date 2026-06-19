@@ -9,6 +9,12 @@ export interface ProyectosPaginadosResponse {
     page: number;
     limit: number;
     lastPage: number;
+    resumen: {
+        activos: number;
+        finalizados: number;
+        bajas: number;
+        internos: number;
+    };
 }
 
 @Injectable({

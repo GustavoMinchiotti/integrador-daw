@@ -25,8 +25,9 @@
 
     <section class="metricas-panel" aria-label="Resumen de proyectos">
         <div class="metrica principal">
-            <span>Resultados</span>
+            <span>Total filtrado</span>
             <strong>{{ totalItems() }}</strong>
+            <small>Viendo {{ rangoInicio() }}–{{ rangoFin() }}</small>
         </div>
         <div class="metrica activo">
             <span>Activos</span>
@@ -177,7 +178,7 @@
 
     <nav class="paginacion-container" aria-label="Paginación de proyectos">
         <div class="paginacion-resumen">
-            <span>{{ totalItems() }} proyectos</span>
+            <span>Viendo {{ rangoInicio() }}–{{ rangoFin() }} de {{ totalItems() }} proyectos</span>
             <label>
                 Filas
                 <select

@@ -4,7 +4,7 @@
 }
 
 .login-shell {
-    background: #0b0e0d;
+    background: var(--login-canvas);
     display: grid;
     grid-template-columns: minmax(20rem, 38rem) 1fr;
     min-height: 100vh;
@@ -94,7 +94,7 @@ h1 {
 }
 
 footer {
-    color: #626a66;
+    color: var(--muted-deep);
     font-size: 0.65rem;
     margin-top: auto;
     padding-top: 3rem;
@@ -135,7 +135,7 @@ footer {
     }
 
     .login-panel {
-        background: rgba(17, 20, 19, 0.94);
+        background: var(--header-bg);
         min-height: 100vh;
     }
 

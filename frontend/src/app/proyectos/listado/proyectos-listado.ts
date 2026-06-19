@@ -10,6 +10,7 @@ import { GestionProyecto } from "../gestion/gestion-proyecto";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { finalize } from "rxjs";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-proyectos-listado",
@@ -21,6 +22,7 @@ export class ProyectosListado {
 
   private readonly messageService: MessageService = inject(MessageService);
   private readonly proyectosListadoApiClient: ProyectosListadoApiClient = inject(ProyectosListadoApiClient);
+  private readonly router: Router = inject(Router);
 
   proyectos: WritableSignal<ListProyectoDTO[]> = signal([]);
   dialogVisible = signal(false);
@@ -38,10 +40,16 @@ export class ProyectosListado {
   pageSizeOptions = [5, 10, 20];
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
-  proyectosActivos = computed(() => this.contarPorEstado('ACTIVO'));
-  proyectosFinalizados = computed(() => this.contarPorEstado('FINALIZADO'));
-  proyectosBaja = computed(() => this.contarPorEstado('BAJA'));
-  proyectosInternos = computed(() => this.proyectos().filter((p) => !p.cliente).length);
+  proyectosActivos = signal<number>(0);
+  proyectosFinalizados = signal<number>(0);
+  proyectosBaja = signal<number>(0);
+  proyectosInternos = signal<number>(0);
+  rangoInicio = computed(() =>
+    this.totalItems() ? (this.currentPage() - 1) * this.limit() + 1 : 0
+  );
+  rangoFin = computed(() =>
+    Math.min(this.currentPage() * this.limit(), this.totalItems())
+  );
 
   private debounceTimer?: ReturnType<typeof setTimeout>;
 
@@ -85,6 +93,10 @@ export class ProyectosListado {
         this.proyectos.set(response.data);
         this.totalItems.set(total);
         this.totalPages.set(lastPage);
+        this.proyectosActivos.set(Number(response.resumen?.activos ?? 0));
+        this.proyectosFinalizados.set(Number(response.resumen?.finalizados ?? 0));
+        this.proyectosBaja.set(Number(response.resumen?.bajas ?? 0));
+        this.proyectosInternos.set(Number(response.resumen?.internos ?? 0));
       },
       error: (error) => {
         const detail = error?.error?.message ?? 'No se pudieron cargar los proyectos';
@@ -92,6 +104,10 @@ export class ProyectosListado {
         this.proyectos.set([]);
         this.totalItems.set(0);
         this.totalPages.set(1);
+        this.proyectosActivos.set(0);
+        this.proyectosFinalizados.set(0);
+        this.proyectosBaja.set(0);
+        this.proyectosInternos.set(0);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -165,7 +181,7 @@ export class ProyectosListado {
   }
 
   gestionarTareas(proyecto: ListProyectoDTO): void {
-    window.open(`/proyectos/${proyecto.id}/tareas`, '_blank');
+    void this.router.navigate(['/proyectos', proyecto.id, 'tareas']);
   }
 
   exportarCsv(): void {
@@ -195,10 +211,6 @@ export class ProyectosListado {
     link.download = 'proyectos.csv';
     link.click();
     URL.revokeObjectURL(url);
-  }
-
-  private contarPorEstado(estado: string): number {
-    return this.proyectos().filter((proyecto) => proyecto.estado === estado).length;
   }
 
   private valorCsv(valor: unknown): string {

@@ -6,7 +6,7 @@
 
 .app-header {
     align-items: center;
-    background: rgba(17, 20, 19, 0.96);
+    background: var(--header-bg);
     border-bottom: 1px solid var(--line);
     display: flex;
     height: 4.5rem;

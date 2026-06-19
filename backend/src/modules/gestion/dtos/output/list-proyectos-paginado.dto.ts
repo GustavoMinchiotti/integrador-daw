@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ListProyectoDTO } from './list-proyecto.dto';
+import { ResumenProyectosDTO } from './resumen-proyectos.dto';
 
 export class ListProyectosPaginadoDTO {
   @ApiProperty({ type: () => ListProyectoDTO, isArray: true })
@@ -16,4 +17,7 @@ export class ListProyectosPaginadoDTO {
 
   @ApiProperty()
   lastPage!: number;
+
+  @ApiProperty({ type: () => ResumenProyectosDTO })
+  resumen!: ResumenProyectosDTO;
 }

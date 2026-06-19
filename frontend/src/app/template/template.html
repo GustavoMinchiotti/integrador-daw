@@ -8,6 +8,14 @@
     <div class="header-actions">
         <span class="system-status"><i aria-hidden="true"></i>Sistema activo</span>
         <p-button
+            id="boton-tema"
+            [icon]="themeStore.icon()"
+            [text]="true"
+            [pTooltip]="themeStore.label()"
+            [attr.aria-label]="themeStore.label()"
+            (click)="themeStore.toggle()">
+        </p-button>
+        <p-button
             id="boton-cerrar-sesion"
             icon="pi pi-sign-out"
             [text]="true"

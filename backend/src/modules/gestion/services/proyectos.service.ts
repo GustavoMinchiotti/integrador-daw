@@ -15,6 +15,7 @@ import { ProyectoDTO } from '../dtos/output/proyecto.dto';
 import { ClientesService } from './clientes.service';
 import { ListClienteDTO } from '../dtos/output/list-cliente.dto';
 import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
+import { ResumenProyectosDTO } from '../dtos/output/resumen-proyectos.dto';
 
 type ObtenerProyectosParams = {
   search?: string;
@@ -101,10 +102,7 @@ export class ProyectosService {
 
     const query = this.repository
       .createQueryBuilder('proyecto')
-      .leftJoinAndSelect('proyecto.cliente', 'cliente')
-      .orderBy(sortBy, sortDirection)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .leftJoinAndSelect('proyecto.cliente', 'cliente');
 
     if (params.search?.trim()) {
       query.andWhere('LOWER(proyecto.nombre) LIKE LOWER(:search)', {
@@ -117,6 +115,38 @@ export class ProyectosService {
         estado: params.estado.trim(),
       });
     }
+
+    const resumenRaw = await query
+      .clone()
+      .select(
+        'COUNT(*) FILTER (WHERE proyecto.estado = :estadoActivo)',
+        'activos',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE proyecto.estado = :estadoFinalizado)',
+        'finalizados',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE proyecto.estado = :estadoBaja)',
+        'bajas',
+      )
+      .addSelect('COUNT(*) FILTER (WHERE cliente.id IS NULL)', 'internos')
+      .setParameters({
+        estadoActivo: EstadosProyectosEnum.ACTIVO,
+        estadoFinalizado: EstadosProyectosEnum.FINALIZADO,
+        estadoBaja: EstadosProyectosEnum.BAJA,
+      })
+      .getRawOne<{
+        activos: string;
+        finalizados: string;
+        bajas: string;
+        internos: string;
+      }>();
+
+    query
+      .orderBy(sortBy, sortDirection)
+      .skip((page - 1) * limit)
+      .take(limit);
 
     const [proyectos, total] = await query.getManyAndCount();
 
@@ -135,12 +165,20 @@ export class ProyectosService {
       return dto;
     });
 
+    const resumen: ResumenProyectosDTO = {
+      activos: Number(resumenRaw?.activos ?? 0),
+      finalizados: Number(resumenRaw?.finalizados ?? 0),
+      bajas: Number(resumenRaw?.bajas ?? 0),
+      internos: Number(resumenRaw?.internos ?? 0),
+    };
+
     return {
       data,
       total,
       page,
       limit,
       lastPage: Math.max(Math.ceil(total / limit), 1),
+      resumen,
     };
   }
 

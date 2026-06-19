@@ -14,8 +14,49 @@
   --acid: #d7ef4a;
   --success: #43c486;
   --danger: #ff6b68;
+  --control-bg: #101311;
+  --header-bg: rgba(17, 20, 19, 0.96);
+  --table-heading: #202522;
+  --row-border: #292e2b;
+  --row-hover: #171b19;
+  --task-border: #2d332f;
+  --task-border-hover: #59615d;
+  --task-complete: #151917;
+  --muted-deep: #6d7671;
+  --error-bg: rgba(255, 107, 104, 0.08);
+  --error-text: #ffb2af;
+  --login-canvas: #0b0e0d;
+  --primary-contrast: #130b09;
   --font-display: "Arial Black", "Arial Narrow", Arial, sans-serif;
   --font-ui: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: #f4f5f1;
+  --ink-raised: #ffffff;
+  --paper: #171b19;
+  --paper-muted: #39413d;
+  --line: #c8cfca;
+  --muted: #66706b;
+  --coral: #d73e29;
+  --cyan: #087f91;
+  --acid: #718000;
+  --success: #168254;
+  --danger: #c8423e;
+  --control-bg: #ffffff;
+  --header-bg: rgba(244, 245, 241, 0.96);
+  --table-heading: #e7ebe7;
+  --row-border: #d9dedb;
+  --row-hover: #ecefeb;
+  --task-border: #d0d6d2;
+  --task-border-hover: #8e9993;
+  --task-complete: #edf0ed;
+  --muted-deep: #77817c;
+  --error-bg: rgba(200, 66, 62, 0.08);
+  --error-text: #9d2e2a;
+  --login-canvas: #e5e9e5;
+  --primary-contrast: #ffffff;
 }
 
 * {
@@ -33,6 +74,7 @@ body {
 
 body {
   min-width: 320px;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 button,
@@ -69,7 +111,7 @@ textarea {
 .p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-success):not(.p-button-info) {
   background: var(--coral) !important;
   border-color: var(--coral) !important;
-  color: #130b09 !important;
+  color: var(--primary-contrast) !important;
 }
 
 .p-button.p-button-secondary {
@@ -81,7 +123,7 @@ textarea {
 .p-inputtext,
 .p-select,
 .ng-select .ng-select-container {
-  background: #101311 !important;
+  background: var(--control-bg) !important;
   border: 1px solid var(--line) !important;
   border-radius: 4px !important;
   color: var(--paper) !important;

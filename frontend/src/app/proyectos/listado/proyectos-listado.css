@@ -86,6 +86,14 @@ h1 {
     margin-top: 0.3rem;
 }
 
+.metrica small {
+    color: var(--muted);
+    display: block;
+    font-size: 0.65rem;
+    margin-top: 0.15rem;
+    text-transform: uppercase;
+}
+
 .filtro-panel {
     align-items: center;
     display: grid;
@@ -97,7 +105,7 @@ h1 {
 
 .search-field {
     align-items: center;
-    background: #101311;
+    background: var(--control-bg);
     border: 1px solid var(--line);
     display: flex;
     min-height: 2.75rem;
@@ -111,7 +119,7 @@ h1 {
 .search-field input,
 .filtro-panel select,
 .limite-select {
-    background: #101311;
+    background: var(--control-bg);
     border: 1px solid var(--line);
     border-radius: 4px;
     color: var(--paper);
@@ -139,7 +147,7 @@ h1 {
 }
 
 ::ng-deep .p-datatable-thead > tr > th {
-    background: #202522 !important;
+    background: var(--table-heading) !important;
     border-color: var(--line) !important;
     color: var(--muted) !important;
     font-size: 0.68rem;
@@ -153,12 +161,12 @@ h1 {
 }
 
 ::ng-deep .p-datatable-tbody > tr > td {
-    border-color: #292e2b !important;
+    border-color: var(--row-border) !important;
     padding: 1rem !important;
 }
 
 ::ng-deep .p-datatable-tbody > tr:hover {
-    background: #171b19 !important;
+    background: var(--row-hover) !important;
 }
 
 .project-id {
@@ -290,9 +298,9 @@ h1 {
 
 .error-panel {
     align-items: center;
-    background: rgba(255, 107, 104, 0.08);
+    background: var(--error-bg);
     border: 1px solid var(--danger);
-    color: #ffb2af;
+    color: var(--error-text);
     display: flex;
     gap: 0.6rem;
     margin: 1rem auto 0;
