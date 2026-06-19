@@ -110,7 +110,7 @@ La instalacion tradicional se detalla en la [guia de despliegue con nginx y PM2]
 
 ## Equipo
 
-| Integrante |
+| Integrantes |
 | --- |
 | Gustavo Minchiotti |
 | Alicia Viviana Montenegro |
@@ -123,4 +123,4 @@ La instalacion tradicional se detalla en la [guia de despliegue con nginx y PM2]
 - Backend publicado: [pulso-api-grupo-am.vercel.app](https://pulso-api-grupo-am.vercel.app)
 - Base de datos migrada y validada en Neon
 
-> Las credenciales de demostracion se entregan por un canal separado. El repositorio no contiene contrasenas, tokens ni copias de la base de datos.
+> Las credenciales de demostración se entregan por un canal separado. El repositorio no contiene contraseñas, tokens ni copias de la base de datos.
