@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -13,7 +14,7 @@ import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { CreateProyectoDto } from '../dtos/input/create-proyecto.dto';
 import { UpdateProyectoDto } from '../dtos/input/update-proyecto.dto';
 
-import { ListProyectoDTO } from '../dtos/output/list-proyecto.dto';
+import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
 import { ProyectoDTO } from '../dtos/output/proyecto.dto';
 
 import { ProyectosService } from '../services/proyectos.service';
@@ -41,11 +42,26 @@ export class ProyectosController {
   }
 
   @ApiBearerAuth()
-  @ApiOkResponse({ type: ListProyectoDTO, isArray: true })
+  @ApiOkResponse({ type: ListProyectosPaginadoDTO })
   @UseGuards(AuthGuard)
   @Get()
-  async obtenerProyectos(): Promise<ListProyectoDTO[]> {
-    return await this.proyectosService.obtenerProyectos();
+  async obtenerProyectos(
+    @Query('search') search?: string,
+    @Query('nombre') nombre?: string,
+    @Query('estado') estado?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
+  ): Promise<ListProyectosPaginadoDTO> {
+    return await this.proyectosService.obtenerProyectos({
+      search: search || nombre,
+      estado,
+      page,
+      limit,
+      sortBy,
+      sortDirection,
+    });
   }
 
   @ApiBearerAuth()

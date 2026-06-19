@@ -12,17 +12,50 @@
     ></p-button>
   </div>
 
+  <div class="kanban-resumen">
+    <div class="kanban-metrica">
+      <span>Total</span>
+      <strong>{{ totalTareas() }}</strong>
+    </div>
+    <div class="kanban-metrica pendiente">
+      <span>Pendientes</span>
+      <strong>{{ totalPendientes() }}</strong>
+    </div>
+    <div class="kanban-metrica progreso">
+      <span>En progreso</span>
+      <strong>{{ totalEnProgreso() }}</strong>
+    </div>
+    <div class="kanban-metrica finalizada">
+      <span>Finalizadas</span>
+      <strong>{{ totalFinalizadas() }}</strong>
+    </div>
+    <div class="kanban-metrica avance">
+      <span>Avance</span>
+      <strong>{{ porcentajeFinalizadas() }}%</strong>
+    </div>
+  </div>
+
+  <div class="kanban-toolbar">
+    <input
+      type="text"
+      placeholder="Buscar tarea por descripción"
+      [ngModel]="filtroTareas()"
+      (ngModelChange)="filtroTareas.set($event)"
+      aria-label="Buscar tarea por descripción"
+    />
+  </div>
+
   <!--  TABLERO KANBAN -->
   <div class="kanban-board grid">
 
     <!--  PENDIENTES -->
     <div class="col-12 md:col-4 columna-wrapper">
       <div class="columna-header pendientes">
-        ⚡ Pendientes
+        ⚡ Pendientes ({{ totalPendientes() }})
       </div>
 
       <div class="columna-cuerpo">
-        @for (tarea of pendientes(); track tarea.id) {
+        @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
 
           <div class="kanban-card">
             <p class="tarea-desc">{{ tarea.descripcion }}</p>
@@ -56,11 +89,11 @@
     <!--  EN PROGRESO -->
     <div class="col-12 md:col-4 columna-wrapper">
       <div class="columna-header enprogreso">
-        🔵 En Progreso
+        🔵 En Progreso ({{ totalEnProgreso() }})
       </div>
 
       <div class="columna-cuerpo">
-        @for (tarea of enProgreso(); track tarea.id) {
+        @for (tarea of getTareasPorEstado('EN_PROGRESO'); track tarea.id) {
 
           <div class="kanban-card">
             <p class="tarea-desc">{{ tarea.descripcion }}</p>
@@ -93,11 +126,11 @@
     <!--  FINALIZADAS -->
     <div class="col-12 md:col-4 columna-wrapper">
       <div class="columna-header finalizadas">
-        ✅ Finalizadas
+        ✅ Finalizadas ({{ totalFinalizadas() }})
       </div>
 
       <div class="columna-cuerpo">
-        @for (tarea of finalizadas(); track tarea.id) {
+        @for (tarea of getTareasPorEstado('FINALIZADA'); track tarea.id) {
 
           <div class="kanban-card completada">
             <p class="tarea-desc tachado">{{ tarea.descripcion }}</p>

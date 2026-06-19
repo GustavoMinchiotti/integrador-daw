@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, WritableSignal } from "@angular/core";
+import { Component, computed, inject, OnInit, signal, WritableSignal } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { MessageService } from "primeng/api";
 import { ListTareaDTO } from "./list-tarea-dto";
@@ -10,6 +10,7 @@ import { Template } from "../../../template/template";
 import { DialogModule } from "primeng/dialog";
 import { GestionTarea } from "../gestion/gestion-tarea";
 import { EstadosTareasEnum } from "../estados-tareas-enum";
+import { FormsModule } from "@angular/forms";
 
 @Component({
   selector: "app-tareas-listado",
@@ -21,7 +22,8 @@ import { EstadosTareasEnum } from "../estados-tareas-enum";
     CardModule,
     Template,
     DialogModule,
-    GestionTarea
+    GestionTarea,
+    FormsModule
   ]
 })
 export class TareasListado implements OnInit {
@@ -35,13 +37,17 @@ export class TareasListado implements OnInit {
 
   tareas: WritableSignal<ListTareaDTO[]> = signal([]);
 
-  // COLUMNAS KANBAN
-  pendientes = signal<ListTareaDTO[]>([]);
-  enProgreso = signal<ListTareaDTO[]>([]);
-  finalizadas = signal<ListTareaDTO[]>([]);
-
   dialogVisible = signal<boolean>(false);
   tareaSeleccionada = signal<ListTareaDTO | null>(null);
+  filtroTareas = signal<string>('');
+  totalTareas = computed(() => this.tareas().length);
+  totalPendientes = computed(() => this.contarTareas(EstadosTareasEnum.PENDIENTE));
+  totalEnProgreso = computed(() => this.contarTareas(EstadosTareasEnum.EN_PROGRESO));
+  totalFinalizadas = computed(() => this.contarTareas(EstadosTareasEnum.FINALIZADA));
+  porcentajeFinalizadas = computed(() => {
+    const total = this.totalTareas();
+    return total ? Math.round((this.totalFinalizadas() / total) * 100) : 0;
+  });
 
   ngOnInit(): void {
     this.idProyecto = Number(this.route.snapshot.paramMap.get('id'));
@@ -64,30 +70,7 @@ export class TareasListado implements OnInit {
   cargarTareas(): void {
     this.http.get<ListTareaDTO[]>(`/api/v1/proyectos/${this.idProyecto}/tareas`).subscribe({
       next: (data) => {
-
         this.tareas.set(data);
-
-        const pendientes: ListTareaDTO[] = [];
-        const enProgreso: ListTareaDTO[] = [];
-        const finalizadas: ListTareaDTO[] = [];
-
-        data.forEach((t) => {
-          if (t.estado === EstadosTareasEnum.PENDIENTE) {
-            pendientes.push(t);
-          }
-
-          if (t.estado === EstadosTareasEnum.EN_PROGRESO) {
-            enProgreso.push(t);
-          }
-
-          if (t.estado === EstadosTareasEnum.FINALIZADA) {
-            finalizadas.push(t);
-          }
-        });
-
-        this.pendientes.set(pendientes);
-        this.enProgreso.set(enProgreso);
-        this.finalizadas.set(finalizadas);
       },
       error: () =>
         this.messageService.add({
@@ -99,7 +82,13 @@ export class TareasListado implements OnInit {
   }
 
   getTareasPorEstado(estado: string): ListTareaDTO[] {
-    return this.tareas().filter(t => t.estado === estado);
+    const filtro = this.filtroTareas().trim().toLowerCase();
+
+    return this.tareas().filter((t) => {
+      const coincideEstado = t.estado === estado;
+      const coincideTexto = !filtro || t.descripcion.toLowerCase().includes(filtro);
+      return coincideEstado && coincideTexto;
+    });
   }
 
   actualizarEstadoTarea(
@@ -146,5 +135,9 @@ export class TareasListado implements OnInit {
   editarTarea(tarea: ListTareaDTO): void {
     this.tareaSeleccionada.set(tarea);
     this.dialogVisible.set(true);
+  }
+
+  private contarTareas(estado: EstadosTareasEnum): number {
+    return this.tareas().filter((tarea) => tarea.estado === estado).length;
   }
 }

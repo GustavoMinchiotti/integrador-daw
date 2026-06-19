@@ -24,6 +24,37 @@
             <option value="BAJA">⚫ Dados de Baja</option>
         </select>
 
+        <select
+            [ngModel]="sortBy()"
+            (ngModelChange)="sortBy.set($event); cambiarOrdenamiento()"
+            class="estado-filtro"
+            title="Ordenar proyectos"
+            aria-label="Ordenar proyectos"
+        >
+            <option value="id">Orden: creación</option>
+            <option value="nombre">Orden: nombre</option>
+            <option value="estado">Orden: estado</option>
+            <option value="cliente">Orden: cliente</option>
+        </select>
+
+        <select
+            [ngModel]="sortDirection()"
+            (ngModelChange)="sortDirection.set($event); cambiarOrdenamiento()"
+            class="estado-filtro orden-direccion"
+            title="Dirección de ordenamiento"
+            aria-label="Dirección de ordenamiento"
+        >
+            <option value="ASC">Ascendente</option>
+            <option value="DESC">Descendente</option>
+        </select>
+
+        <p-button
+            icon="pi pi-filter-slash"
+            label="Limpiar"
+            severity="secondary"
+            (click)="limpiarFiltros()">
+        </p-button>
+
     </div>
 
     <!-- BOTÓN CREAR -->
@@ -34,6 +65,37 @@
             label="Crear Proyecto"
             (click)="crearProyecto()">
         </p-button>
+
+        <p-button
+            icon="pi pi-download"
+            label="Exportar CSV"
+            severity="secondary"
+            [disabled]="!proyectos().length"
+            (click)="exportarCsv()">
+        </p-button>
+    </div>
+
+    <div class="metricas-panel">
+        <div class="metrica-card">
+            <span class="metrica-label">Resultados</span>
+            <strong>{{ totalItems() }}</strong>
+        </div>
+        <div class="metrica-card activo">
+            <span class="metrica-label">Activos visibles</span>
+            <strong>{{ proyectosActivos() }}</strong>
+        </div>
+        <div class="metrica-card finalizado">
+            <span class="metrica-label">Finalizados visibles</span>
+            <strong>{{ proyectosFinalizados() }}</strong>
+        </div>
+        <div class="metrica-card baja">
+            <span class="metrica-label">Baja visibles</span>
+            <strong>{{ proyectosBaja() }}</strong>
+        </div>
+        <div class="metrica-card interno">
+            <span class="metrica-label">Internos visibles</span>
+            <strong>{{ proyectosInternos() }}</strong>
+        </div>
     </div>
 
     <!--  TABLA -->
@@ -42,6 +104,7 @@
         [value]="proyectos()"
         [tableStyle]="{ 'min-width': '50rem' }"
         [scrollable]="true"
+        [loading]="loading()"
         scrollHeight="60vh"
     >
 
@@ -122,31 +185,85 @@
                 <ng-template #emptymessage>
             <tr>
                 <td colspan="4" class="emptymessage-td">
-                    📭 No se encontraron proyectos con estos filtros
+                    No se encontraron proyectos con estos filtros
                 </td>
             </tr>
         </ng-template>
 
     </p-table>
 
-    <!--  PAGINACIÓN  -->
-    <div class="paginacion-container paginacion-estilos">
+    @if (errorMessage()) {
+        <div class="error-panel">
+            {{ errorMessage() }}
+        </div>
+    }
 
-        <button
-            [disabled]="currentPage() === 1"
-            (click)="cambiarPagina(currentPage() - 1)">
-            « Anterior
-        </button>
+    <div class="paginacion-container">
+
+        <div class="paginacion-resumen">
+            <span>{{ totalItems() }} proyectos</span>
+            <label>
+                Mostrar
+                <select
+                    class="limite-select"
+                    [ngModel]="limit()"
+                    (ngModelChange)="cambiarLimite($event)"
+                    [disabled]="loading()"
+                    aria-label="Cantidad de proyectos por pagina"
+                >
+                    @for (opcion of pageSizeOptions; track opcion) {
+                        <option [value]="opcion">{{ opcion }}</option>
+                    }
+                </select>
+            </label>
+        </div>
+
+        <div class="paginacion-botones">
+            <button
+                class="paginacion-button"
+                [disabled]="currentPage() === 1 || loading()"
+                (click)="cambiarPagina(1)"
+                aria-label="Primera pagina">
+                «
+            </button>
+
+            <button
+                class="paginacion-button"
+                [disabled]="currentPage() === 1 || loading()"
+                (click)="cambiarPagina(currentPage() - 1)">
+                Anterior
+            </button>
+
+            @for (pagina of paginasVisibles(); track pagina) {
+                <button
+                    class="paginacion-button pagina-numero"
+                    [class.activa]="pagina === currentPage()"
+                    [disabled]="pagina === currentPage() || loading()"
+                    (click)="cambiarPagina(pagina)"
+                    [attr.aria-label]="'Ir a pagina ' + pagina">
+                    {{ pagina }}
+                </button>
+            }
+
+            <button
+                class="paginacion-button"
+                [disabled]="currentPage() === totalPages() || loading()"
+                (click)="cambiarPagina(currentPage() + 1)">
+                Siguiente
+            </button>
+
+            <button
+                class="paginacion-button"
+                [disabled]="currentPage() === totalPages() || loading()"
+                (click)="cambiarPagina(totalPages())"
+                aria-label="Ultima pagina">
+                »
+            </button>
+        </div>
 
         <span class="paginacion-texto">
             Página {{ currentPage() }} de {{ totalPages() }}
         </span>
-
-        <button
-            [disabled]="currentPage() === totalPages()"
-            (click)="cambiarPagina(currentPage() + 1)">
-            Siguiente »
-        </button>
 
     </div>
 

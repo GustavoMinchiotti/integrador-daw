@@ -19,6 +19,63 @@
   margin: 0;
 }
 
+.kanban-resumen {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  margin-bottom: 1rem;
+}
+
+.kanban-metrica {
+  background: #121218;
+  border: 1px solid #252538;
+  border-radius: 8px;
+  color: #e2e8f0;
+  padding: 0.9rem 1rem;
+}
+
+.kanban-metrica span {
+  color: #94a3b8;
+  display: block;
+  font-size: 0.8rem;
+}
+
+.kanban-metrica strong {
+  display: block;
+  font-size: 1.4rem;
+  margin-top: 0.25rem;
+}
+
+.kanban-metrica.pendiente {
+  border-left: 4px solid #00d2ff;
+}
+
+.kanban-metrica.progreso {
+  border-left: 4px solid #3b82f6;
+}
+
+.kanban-metrica.finalizada {
+  border-left: 4px solid #10b981;
+}
+
+.kanban-metrica.avance {
+  border-left: 4px solid #f59e0b;
+}
+
+.kanban-toolbar {
+  margin-bottom: 1rem;
+}
+
+.kanban-toolbar input {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  color: #e5e7eb;
+  max-width: 28rem;
+  padding: 0.7rem 0.8rem;
+  width: 100%;
+}
+
 /* TABLERO */
 .kanban-board {
   display: flex;
