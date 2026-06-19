@@ -24,9 +24,7 @@ async function bootstrap() {
   origin: true,
   });
 
-  console.log('ARRANQUE NUEVO');
-  
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 
 }
 void bootstrap();

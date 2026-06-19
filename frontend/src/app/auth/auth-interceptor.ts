@@ -10,10 +10,8 @@ export function authInterceptor(
   const authStore = inject(AuthStore);
   const authToken = authStore.obtenerToken();
 
-  //Roles
   const userRole = sessionStorage.getItem("userRole") || "CREATIVO";
 
-  // Headers
   let headers = req.headers.set('X-User-Role', userRole);
   if (authToken) {
     headers = headers.set('Authorization', `Bearer ${authToken}`);

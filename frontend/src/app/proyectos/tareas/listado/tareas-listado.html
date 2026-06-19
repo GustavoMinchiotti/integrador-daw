@@ -1,164 +1,90 @@
 <app-template>
+  <section class="board-heading">
+    <div>
+      <p class="section-index">02 / FLUJO DE TRABAJO</p>
+      <h1>{{ nombreProyecto() }}</h1>
+      <p class="board-subtitle">Tablero operativo de tareas</p>
+    </div>
 
-  <!--  HEADER -->
-  <div class="kanban-header">
-    <h2>📋 Tablero de Flujo // {{ nombreProyecto() }}</h2>
+    <p-button icon="pi pi-plus" label="Nueva tarea" (click)="agregarTarea()"></p-button>
+  </section>
 
-    <p-button
-      icon="pi pi-plus"
-      label="Nueva Tarea"
-      (click)="agregarTarea()"
-      class="p-button-rounded p-button-info"
-    ></p-button>
-  </div>
-
-  <div class="kanban-resumen">
-    <div class="kanban-metrica">
-      <span>Total</span>
-      <strong>{{ totalTareas() }}</strong>
-    </div>
-    <div class="kanban-metrica pendiente">
-      <span>Pendientes</span>
-      <strong>{{ totalPendientes() }}</strong>
-    </div>
-    <div class="kanban-metrica progreso">
-      <span>En progreso</span>
-      <strong>{{ totalEnProgreso() }}</strong>
-    </div>
-    <div class="kanban-metrica finalizada">
-      <span>Finalizadas</span>
-      <strong>{{ totalFinalizadas() }}</strong>
-    </div>
-    <div class="kanban-metrica avance">
-      <span>Avance</span>
-      <strong>{{ porcentajeFinalizadas() }}%</strong>
-    </div>
-  </div>
+  <section class="kanban-resumen" aria-label="Resumen de tareas">
+    <div class="kanban-metrica total"><span>Total</span><strong>{{ totalTareas() }}</strong></div>
+    <div class="kanban-metrica pendiente"><span>Pendientes</span><strong>{{ totalPendientes() }}</strong></div>
+    <div class="kanban-metrica progreso"><span>En progreso</span><strong>{{ totalEnProgreso() }}</strong></div>
+    <div class="kanban-metrica finalizada"><span>Finalizadas</span><strong>{{ totalFinalizadas() }}</strong></div>
+    <div class="kanban-metrica avance"><span>Avance</span><strong>{{ porcentajeFinalizadas() }}%</strong></div>
+  </section>
 
   <div class="kanban-toolbar">
-    <input
-      type="text"
-      placeholder="Buscar tarea por descripción"
-      [ngModel]="filtroTareas()"
-      (ngModelChange)="filtroTareas.set($event)"
-      aria-label="Buscar tarea por descripción"
-    />
+    <label>
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input type="search" placeholder="Buscar en el tablero" [ngModel]="filtroTareas()"
+        (ngModelChange)="filtroTareas.set($event)" aria-label="Buscar tarea por descripción" />
+    </label>
   </div>
 
-  <!--  TABLERO KANBAN -->
-  <div class="kanban-board grid">
-
-    <!--  PENDIENTES -->
-    <div class="col-12 md:col-4 columna-wrapper">
-      <div class="columna-header pendientes">
-        ⚡ Pendientes ({{ totalPendientes() }})
-      </div>
-
-      <div class="columna-cuerpo">
+  <section class="kanban-board" aria-label="Tablero Kanban">
+    <div class="kanban-column pendiente">
+      <header class="column-heading"><span>Pendiente</span><strong>{{ totalPendientes() }}</strong></header>
+      <div class="column-body">
         @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
-
-          <div class="kanban-card">
-            <p class="tarea-desc">{{ tarea.descripcion }}</p>
-
+          <article class="task-card">
+            <span class="task-id">T-{{ tarea.id }}</span>
+            <p>{{ tarea.descripcion }}</p>
             <div class="card-actions">
-
-              <p-button
-                icon="pi pi-pencil"
-                severity="secondary"
-                [rounded]="true"
-                [text]="true"
-                (click)="editarTarea(tarea)"
-              ></p-button>
-
-              <p-button
-                icon="pi pi-arrow-right"
-                severity="info"
-                label="Mover"
-                (click)="actualizarEstadoTarea(tarea, $any('EN_PROGRESO'))"
-              ></p-button>
-
+              <p-button icon="pi pi-pencil" severity="secondary" [text]="true" pTooltip="Editar tarea"
+                aria-label="Editar tarea" (click)="editarTarea(tarea)"></p-button>
+              <p-button icon="pi pi-arrow-right" severity="secondary" pTooltip="Mover a en progreso"
+                aria-label="Mover a en progreso" (click)="actualizarEstadoTarea(tarea, $any('EN_PROGRESO'))"></p-button>
             </div>
-          </div>
-
+          </article>
         } @empty {
-          <div class="empty-col-msg">Sin tareas pendientes</div>
+          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Sin tareas pendientes</div>
         }
       </div>
     </div>
 
-    <!--  EN PROGRESO -->
-    <div class="col-12 md:col-4 columna-wrapper">
-      <div class="columna-header enprogreso">
-        🔵 En Progreso ({{ totalEnProgreso() }})
-      </div>
-
-      <div class="columna-cuerpo">
+    <div class="kanban-column progreso">
+      <header class="column-heading"><span>En progreso</span><strong>{{ totalEnProgreso() }}</strong></header>
+      <div class="column-body">
         @for (tarea of getTareasPorEstado('EN_PROGRESO'); track tarea.id) {
-
-          <div class="kanban-card">
-            <p class="tarea-desc">{{ tarea.descripcion }}</p>
-
+          <article class="task-card">
+            <span class="task-id">T-{{ tarea.id }}</span>
+            <p>{{ tarea.descripcion }}</p>
             <div class="card-actions">
-
-              <p-button
-                icon="pi pi-arrow-left"
-                severity="secondary"
-                label="Volver"
-                (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"
-              ></p-button>
-
-              <p-button
-                icon="pi pi-check"
-                severity="success"
-                label="Finalizar"
-                (click)="actualizarEstadoTarea(tarea, $any('FINALIZADA'))"
-              ></p-button>
-
+              <p-button icon="pi pi-arrow-left" severity="secondary" [text]="true" pTooltip="Volver a pendiente"
+                aria-label="Volver a pendiente" (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"></p-button>
+              <p-button icon="pi pi-check" severity="secondary" pTooltip="Marcar como finalizada"
+                aria-label="Marcar como finalizada" (click)="actualizarEstadoTarea(tarea, $any('FINALIZADA'))"></p-button>
             </div>
-          </div>
-
+          </article>
         } @empty {
-          <div class="empty-col-msg">Sin tareas en progreso</div>
+          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Nada en curso</div>
         }
       </div>
     </div>
 
-    <!--  FINALIZADAS -->
-    <div class="col-12 md:col-4 columna-wrapper">
-      <div class="columna-header finalizadas">
-        ✅ Finalizadas ({{ totalFinalizadas() }})
-      </div>
-
-      <div class="columna-cuerpo">
+    <div class="kanban-column finalizada">
+      <header class="column-heading"><span>Finalizada</span><strong>{{ totalFinalizadas() }}</strong></header>
+      <div class="column-body">
         @for (tarea of getTareasPorEstado('FINALIZADA'); track tarea.id) {
-
-          <div class="kanban-card completada">
-            <p class="tarea-desc tachado">{{ tarea.descripcion }}</p>
-
+          <article class="task-card completada">
+            <span class="task-id">T-{{ tarea.id }}</span>
+            <p>{{ tarea.descripcion }}</p>
             <div class="card-actions">
-              <p-button
-                icon="pi pi-refresh"
-                severity="secondary"
-                label="Reabrir"
-                (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"
-              ></p-button>
+              <p-button icon="pi pi-refresh" severity="secondary" [text]="true" pTooltip="Reabrir tarea"
+                aria-label="Reabrir tarea" (click)="actualizarEstadoTarea(tarea, $any('PENDIENTE'))"></p-button>
             </div>
-          </div>
-
+          </article>
         } @empty {
-          <div class="empty-col-msg">No hay tareas completadas</div>
+          <div class="empty-column"><i class="pi pi-circle" aria-hidden="true"></i>Sin entregas todavía</div>
         }
       </div>
     </div>
-
-  </div>
-
+  </section>
 </app-template>
 
-<!--  MODAL -->
-<app-gestion-tarea
-  [(visible)]="dialogVisible"
-  [(tareaSeleccionada)]="tareaSeleccionada"
-  [idProyecto]="idProyecto"
-  (onSaved)="cargarTareas()"
-></app-gestion-tarea>
+<app-gestion-tarea [(visible)]="dialogVisible" [(tareaSeleccionada)]="tareaSeleccionada"
+  [idProyecto]="idProyecto" (onSaved)="cargarTareas()"></app-gestion-tarea>

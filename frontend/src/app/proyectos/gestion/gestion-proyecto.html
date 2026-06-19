@@ -1,42 +1,24 @@
-<p-dialog [header]="header()" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }"
-    (onHide)="cerrarDialog()">
+<p-dialog [header]="header()" [modal]="true" [(visible)]="visible"
+    [style]="{ width: '28rem', maxWidth: 'calc(100vw - 2rem)' }" (onHide)="cerrarDialog()">
+    <form [formGroup]="form" class="entity-form">
+        <label for="nombre">Nombre del proyecto</label>
+        <input pInputText type="text" id="nombre" placeholder="Ej. Portal de clientes" formControlName="nombre" />
 
-    <form [formGroup]="form">
-        <div id="contenedor-formulario">
+        <label for="cliente">Cliente</label>
+        <ng-select id="cliente" formControlName="cliente" [items]="clientes()" bindLabel="nombre"
+            placeholder="Proyecto interno" [clearable]="true" />
 
-            <input pInputText type="text" id="nombre" placeholder="Nombre" formControlName="nombre" />
+        <button id="boton-gestionar-clientes" pButton type="button" icon="pi pi-users"
+            label="Gestionar clientes" severity="secondary" (click)="gestionarClientes()"></button>
 
-            <ng-select
-                formControlName="cliente"
-                [items]="clientes()"
-                bindLabel="nombre"
-                placeholder="Cliente"
-                [clearable]="true"
-            />
-
-
-            <hr>
-
-            <p><strong>Clientes cargados:</strong> {{ clientes().length }}</p>
-
-            @for (c of clientes(); track c.id) {
-                <div>
-                    ID: {{ c.id }} -
-                    Nombre: {{ c.nombre }} -
-                    Estado: {{ c.estado }}
-                </div>
-            }
-
-            <button id="boton-gestionar-clientes" pButton label="Gestionar Clientes" (click)="gestionarClientes()"
-                severity="secondary"></button>
-
-            @if (proyectoSeleccionado()) {
+        @if (proyectoSeleccionado()) {
+            <label for="estado">Estado</label>
             <p-select id="estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
-            }
+        }
 
-            <button pButton id="guardar" label="Guardar" (click)="guardarProyecto()"></button>
-
-        </div>
+        <button pButton type="button" id="guardar" icon="pi pi-check" label="Guardar proyecto"
+            (click)="guardarProyecto()"></button>
     </form>
 </p-dialog>
+
 <app-clientes-listado [(visible)]="dialogClientesVisible"></app-clientes-listado>

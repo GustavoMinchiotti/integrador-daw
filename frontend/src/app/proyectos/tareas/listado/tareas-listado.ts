@@ -5,9 +5,9 @@ import { ListTareaDTO } from "./list-tarea-dto";
 import { HttpClient } from "@angular/common/http";
 import { CommonModule } from "@angular/common";
 import { ButtonModule } from "primeng/button";
-import { CardModule } from "primeng/card";
 import { Template } from "../../../template/template";
 import { DialogModule } from "primeng/dialog";
+import { TooltipModule } from "primeng/tooltip";
 import { GestionTarea } from "../gestion/gestion-tarea";
 import { EstadosTareasEnum } from "../estados-tareas-enum";
 import { FormsModule } from "@angular/forms";
@@ -19,9 +19,9 @@ import { FormsModule } from "@angular/forms";
   imports: [
     CommonModule,
     ButtonModule,
-    CardModule,
     Template,
     DialogModule,
+    TooltipModule,
     GestionTarea,
     FormsModule
   ]

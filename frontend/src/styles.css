@@ -1,11 +1,97 @@
 @import "primeicons/primeicons.css";
-@import "@ng-select/ng-select/themes/default.theme.css"; 
+@import "@ng-select/ng-select/themes/default.theme.css";
 
-body{
-    margin: 0;
-    background-color: lightyellow;
+:root {
+  color-scheme: dark;
+  --ink: #111413;
+  --ink-raised: #191d1b;
+  --paper: #f2efe7;
+  --paper-muted: #d9d5ca;
+  --line: #343a37;
+  --muted: #929b96;
+  --coral: #ff5138;
+  --cyan: #26bfd1;
+  --acid: #d7ef4a;
+  --success: #43c486;
+  --danger: #ff6b68;
+  --font-display: "Arial Black", "Arial Narrow", Arial, sans-serif;
+  --font-ui: Inter, "Segoe UI", Arial, sans-serif;
 }
 
-.p-dialog{
-    margin: 1rem;
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-ui);
+}
+
+body {
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.p-dialog {
+  margin: 1rem;
+  border: 1px solid var(--line) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content {
+  background: var(--ink-raised) !important;
+  color: var(--paper) !important;
+}
+
+.p-dialog .p-dialog-title {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.p-button {
+  border-radius: 4px !important;
+  font-weight: 700 !important;
+}
+
+.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-success):not(.p-button-info) {
+  background: var(--coral) !important;
+  border-color: var(--coral) !important;
+  color: #130b09 !important;
+}
+
+.p-button.p-button-secondary {
+  background: transparent !important;
+  border-color: var(--line) !important;
+  color: var(--paper) !important;
+}
+
+.p-inputtext,
+.p-select,
+.ng-select .ng-select-container {
+  background: #101311 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 4px !important;
+  color: var(--paper) !important;
+}
+
+.p-toast-message {
+  border-radius: 4px !important;
+}
+
+::selection {
+  background: var(--acid);
+  color: var(--ink);
 }

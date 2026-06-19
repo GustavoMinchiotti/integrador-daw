@@ -27,14 +27,12 @@ export class Proyecto {
   @Column({ type: 'varchar', length: 50, default: 'activo' })
   estado: string;
 
-  // ✅ Relación con Cliente
   @ManyToOne(() => Cliente, (cliente) => cliente.proyectos, {
     nullable: true,
   })
   @JoinColumn({ name: 'id_cliente' })
   cliente: Relation<Cliente>;
 
-  // ✅ Relación con Tareas
   @OneToMany(() => Tarea, (tarea) => tarea.proyecto, {
     cascade: true,
   })
