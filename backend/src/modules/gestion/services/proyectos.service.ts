@@ -14,6 +14,16 @@ import { ListProyectoDTO } from '../dtos/output/list-proyecto.dto';
 import { ProyectoDTO } from '../dtos/output/proyecto.dto';
 import { ClientesService } from './clientes.service';
 import { ListClienteDTO } from '../dtos/output/list-cliente.dto';
+import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
+
+type ObtenerProyectosParams = {
+  search?: string;
+  estado?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};
 
 @Injectable()
 export class ProyectosService {
@@ -74,13 +84,43 @@ export class ProyectosService {
     await this.repository.save(proyecto);
   }
 
-  async obtenerProyectos(): Promise<ListProyectoDTO[]> {
-    const proyectos: Proyecto[] = await this.repository.find({
-      relations: { cliente: true },
-      order: { id: 'ASC' },
-    });
+  async obtenerProyectos(
+    params: ObtenerProyectosParams = {},
+  ): Promise<ListProyectosPaginadoDTO> {
+    const page = Math.max(Number(params.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(params.limit) || 5, 1), 100);
+    const sortColumns: Record<string, string> = {
+      id: 'proyecto.id',
+      nombre: 'proyecto.nombre',
+      estado: 'proyecto.estado',
+      cliente: 'cliente.nombre',
+    };
+    const sortBy = sortColumns[params.sortBy || 'id'] || sortColumns.id;
+    const sortDirection =
+      params.sortDirection?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-    return proyectos.map((p) => {
+    const query = this.repository
+      .createQueryBuilder('proyecto')
+      .leftJoinAndSelect('proyecto.cliente', 'cliente')
+      .orderBy(sortBy, sortDirection)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (params.search?.trim()) {
+      query.andWhere('LOWER(proyecto.nombre) LIKE LOWER(:search)', {
+        search: `%${params.search.trim()}%`,
+      });
+    }
+
+    if (params.estado?.trim()) {
+      query.andWhere('proyecto.estado = :estado', {
+        estado: params.estado.trim(),
+      });
+    }
+
+    const [proyectos, total] = await query.getManyAndCount();
+
+    const data = proyectos.map((p) => {
       const dto = new ListProyectoDTO();
       dto.id = p.id;
       dto.nombre = p.nombre;
@@ -94,6 +134,14 @@ export class ProyectosService {
       }
       return dto;
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      lastPage: Math.max(Math.ceil(total / limit), 1),
+    };
   }
 
   async obtenerProyecto(id: number): Promise<ProyectoDTO> {

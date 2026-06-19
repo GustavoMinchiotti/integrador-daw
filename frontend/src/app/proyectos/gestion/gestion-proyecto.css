@@ -1,25 +1,27 @@
-#contenedor-formulario{
+.entity-form {
     display: flex;
     flex-direction: column;
+    gap: 0.7rem;
 }
 
-#nombre{
-    margin-bottom: 1rem;
+.entity-form label {
+    color: var(--muted);
+    font-size: 0.7rem;
+    margin-top: 0.4rem;
+    text-transform: uppercase;
 }
 
-#cliente{
-    margin-bottom: 1rem;
+.entity-form input,
+.entity-form ng-select,
+.entity-form p-select,
+.entity-form button {
+    width: 100%;
 }
 
-#estado{
-    margin-bottom: 1rem;
+#boton-gestionar-clientes {
+    margin: 0.5rem 0 1rem;
 }
 
-#boton-gestionar-clientes{
-    margin-bottom: 1rem;
-
-}
-
-#guardar{
-    align-self: center;
+#guardar {
+    margin-top: 0.75rem;
 }

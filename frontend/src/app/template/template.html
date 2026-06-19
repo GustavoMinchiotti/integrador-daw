@@ -1,7 +1,23 @@
-<header id="header">
-    <h1 id="nombre-de-proyecto">Sistema de Gestión de Proyectos- Grupo AM</h1>
-    <p-button id="boton-cerrar-sesion" icon="pi pi-sign-out" label="Cerrar Sesión" (click)="cerrarSesion()"></p-button>
+<header class="app-header">
+    <a class="brand" href="/proyectos" aria-label="Ir a proyectos">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">PULSO</span>
+        <span class="brand-edition">Grupo AM / 2026</span>
+    </a>
+
+    <div class="header-actions">
+        <span class="system-status"><i aria-hidden="true"></i>Sistema activo</span>
+        <p-button
+            id="boton-cerrar-sesion"
+            icon="pi pi-sign-out"
+            [text]="true"
+            pTooltip="Cerrar sesión"
+            aria-label="Cerrar sesión"
+            (click)="cerrarSesion()">
+        </p-button>
+    </div>
 </header>
-<div id="content">
+
+<main class="app-content">
     <ng-content></ng-content>
-</div>
+</main>

@@ -1,98 +1,350 @@
-/* BOTONES */
-#boton-gestionar-tareas {
-    margin-right: 1rem;
-}
-
-/* TABLA */
-#tabla {
-    margin-top: 1rem;
-}
-
-/* FONDO GENERAL */
 :host {
     display: block;
+}
+
+.page-heading {
+    align-items: end;
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    margin: 0 auto 2rem;
+    max-width: 92rem;
+}
+
+.section-index {
+    color: var(--coral);
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+}
+
+h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 7vw, 5.75rem);
+    line-height: 0.85;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.page-subtitle {
+    color: var(--muted);
+    margin: 0.75rem 0 0;
+}
+
+.heading-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.metricas-panel {
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(5, minmax(7rem, 1fr));
+    margin: 0 auto 1.25rem;
+    max-width: 92rem;
+}
+
+.metrica {
+    border-right: 1px solid var(--line);
+    min-height: 6rem;
     padding: 1rem;
+    position: relative;
 }
 
-/*  CONTENEDOR SUPERIOR */
-app-template {
+.metrica:last-child {
+    border-right: 0;
+}
+
+.metrica::before {
+    background: var(--muted);
+    content: "";
+    height: 0.35rem;
+    left: 1rem;
+    position: absolute;
+    top: -0.2rem;
+    width: 1.5rem;
+}
+
+.metrica.activo::before { background: var(--success); }
+.metrica.finalizado::before { background: var(--cyan); }
+.metrica.baja::before { background: var(--danger); }
+.metrica.interno::before { background: var(--acid); }
+
+.metrica span {
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.metrica strong {
     display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-top: 0.3rem;
 }
 
-/* PANEL DE FILTROS */
 .filtro-panel {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    align-items: center;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: minmax(15rem, 1fr) repeat(3, minmax(9rem, auto)) auto;
+    margin: 0 auto 1rem;
+    max-width: 92rem;
 }
 
-/* INPUT Y SELECT */
-input, select {
-    background: #111827 !important;
-    color: #e5e7eb !important;
-    border: 1px solid #374151 !important;
-    border-radius: 6px;
-    padding: 0.6rem;
+.search-field {
+    align-items: center;
+    background: #101311;
+    border: 1px solid var(--line);
+    display: flex;
+    min-height: 2.75rem;
+    padding: 0 0.8rem;
 }
 
-/* BOTÓN CREAR */
-::ng-deep #boton-crear-proyecto {
-    background: #10b981 !important;
-    border: none !important;
+.search-field i {
+    color: var(--coral);
 }
 
-/* TABLA PRIME NG */
-::ng-deep .p-datatable {
-    background: #111827;
-    border-radius: 10px;
+.search-field input,
+.filtro-panel select,
+.limite-select {
+    background: #101311;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--paper);
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+}
+
+.search-field input {
+    border: 0;
+    min-width: 0;
+    outline: 0;
+    width: 100%;
+}
+
+.table-shell {
+    border: 1px solid var(--line);
+    margin: 0 auto;
+    max-width: 92rem;
     overflow: hidden;
 }
 
-/* HEADER */
+::ng-deep .p-datatable,
+::ng-deep .p-datatable-table-container {
+    background: var(--ink) !important;
+}
+
 ::ng-deep .p-datatable-thead > tr > th {
-    background: #1f2937;
-    color: #e5e7eb;
-    font-weight: 600;
-    border: none;
+    background: #202522 !important;
+    border-color: var(--line) !important;
+    color: var(--muted) !important;
+    font-size: 0.68rem;
+    padding: 0.9rem 1rem !important;
+    text-transform: uppercase;
 }
 
-/* FILAS */
 ::ng-deep .p-datatable-tbody > tr {
-    color: #f9fafb;
+    background: var(--ink) !important;
+    color: var(--paper) !important;
 }
 
-/* HOVER */
+::ng-deep .p-datatable-tbody > tr > td {
+    border-color: #292e2b !important;
+    padding: 1rem !important;
+}
+
 ::ng-deep .p-datatable-tbody > tr:hover {
-    background: #1e293b;
-    transition: 0.2s;
+    background: #171b19 !important;
 }
 
-/* TEXTOS */
-strong {
-    color: #f9fafb;
+.project-id {
+    color: var(--coral);
+    display: block;
+    font-size: 0.62rem;
+    margin-bottom: 0.25rem;
 }
 
-/* CLIENTE */
-span {
-    font-size: 0.9rem;
+.cliente-interno {
+    color: var(--acid);
 }
 
-/* PAGINACIÓN */
-button {
-    background: #1f2937;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
+.status {
+    align-items: center;
+    display: inline-flex;
+    font-size: 0.68rem;
+    font-weight: 700;
+    gap: 0.45rem;
+    text-transform: uppercase;
+}
+
+.status::before {
+    background: var(--muted);
+    border-radius: 50%;
+    content: "";
+    height: 0.5rem;
+    width: 0.5rem;
+}
+
+.status-activo::before { background: var(--success); }
+.status-finalizado::before { background: var(--cyan); }
+.status-baja::before { background: var(--danger); }
+
+.actions-heading,
+.row-actions {
+    text-align: right !important;
+}
+
+.row-actions {
+    white-space: nowrap;
+}
+
+.row-actions p-button + p-button {
+    margin-left: 0.25rem;
+}
+
+.empty-state {
+    padding: 4rem 1rem !important;
+    text-align: center;
+}
+
+.empty-state i,
+.empty-state strong,
+.empty-state span {
+    display: block;
+}
+
+.empty-state i {
+    color: var(--coral);
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state span {
+    color: var(--muted);
+    margin-top: 0.35rem;
+}
+
+.paginacion-container {
+    align-items: center;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr auto 1fr;
+    margin: 1rem auto 0;
+    max-width: 92rem;
+}
+
+.paginacion-resumen,
+.paginacion-botones {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.paginacion-resumen {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.limite-select {
+    margin-left: 0.35rem;
+    min-height: 2.25rem;
+    padding: 0 0.5rem;
+}
+
+.page-button {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--paper);
     cursor: pointer;
+    height: 2.25rem;
+    min-width: 2.25rem;
 }
 
-button:hover {
-    background: #334155;
+.page-button:hover:not(:disabled),
+.page-button.activa {
+    background: var(--paper);
+    border-color: var(--paper);
+    color: var(--ink);
 }
 
-/*  TOOLTIP */
-::ng-deep .p-tooltip {
-    font-size: 0.8rem;
+.page-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.page-button.activa {
+    opacity: 1;
+}
+
+.paginacion-texto {
+    color: var(--muted);
+    font-size: 0.72rem;
+    justify-self: end;
+    text-transform: uppercase;
+}
+
+.error-panel {
+    align-items: center;
+    background: rgba(255, 107, 104, 0.08);
+    border: 1px solid var(--danger);
+    color: #ffb2af;
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem auto 0;
+    max-width: 92rem;
+    padding: 0.8rem 1rem;
+}
+
+@media (max-width: 900px) {
+    .metricas-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metrica {
+        border-bottom: 1px solid var(--line);
+    }
+
+    .filtro-panel {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .search-field {
+        grid-column: 1 / -1;
+    }
+
+    .paginacion-container {
+        grid-template-columns: 1fr;
+    }
+
+    .paginacion-texto {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 620px) {
+    .page-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .heading-actions p-button {
+        flex: 1;
+    }
+
+    .filtro-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .search-field {
+        grid-column: auto;
+    }
+
+    .paginacion-botones {
+        flex-wrap: wrap;
+    }
 }

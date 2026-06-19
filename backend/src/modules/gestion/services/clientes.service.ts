@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 
 import { Cliente } from '../entities/cliente.entity';
-import { Proyecto } from '../entities/proyecto.entity'; // Importamos la Entidad, no el servicio
+import { Proyecto } from '../entities/proyecto.entity';
 import { CreateClienteDto } from '../dtos/input/create-cliente.dto';
 import { UpdateClienteDto } from '../dtos/input/update-cliente.dto';
 import { EstadosClientesEnum } from '../enums/estados-clientes.enum';
@@ -16,7 +16,6 @@ export class ClientesService {
     @InjectRepository(Cliente)
     private readonly repository: Repository<Cliente>,
 
-    // Inyectamos directamente el repositorio de proyectos para romper el ciclo
     @InjectRepository(Proyecto)
     private readonly proyectoRepository: Repository<Proyecto>,
   ) {}

@@ -12,6 +12,7 @@ import {
 
 import { Tarea } from './tarea.entity';
 import { Cliente } from './cliente.entity';
+import { EstadosProyectosEnum } from '../enums/estados-proyectos.enum';
 
 @Entity('proyectos')
 export class Proyecto {
@@ -24,17 +25,19 @@ export class Proyecto {
   @Column({ type: 'text', nullable: true })
   descripcion: string;
 
-  @Column({ type: 'varchar', length: 50, default: 'activo' })
-  estado: string;
+  @Column({
+    type: 'varchar',
+    length: 50,
+    default: EstadosProyectosEnum.ACTIVO,
+  })
+  estado: EstadosProyectosEnum;
 
-  // ✅ Relación con Cliente
   @ManyToOne(() => Cliente, (cliente) => cliente.proyectos, {
     nullable: true,
   })
   @JoinColumn({ name: 'id_cliente' })
   cliente: Relation<Cliente>;
 
-  // ✅ Relación con Tareas
   @OneToMany(() => Tarea, (tarea) => tarea.proyecto, {
     cascade: true,
   })

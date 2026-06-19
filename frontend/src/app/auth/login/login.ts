@@ -12,10 +12,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
     selector: "app-login",
     templateUrl: "./login.html",
     styleUrl: "./login.css",
-    standalone: true, // Asegura que Angular procese los imports en esta versión
+    standalone: true,
     imports: [ButtonModule, InputTextModule, PasswordModule, ReactiveFormsModule]
 })
-export class Login { // El nombre de la clase debe ser 'Login' para coincidir con app.routes.ts
+export class Login {
 
     private readonly loginApiClient: LoginApiClient = inject(LoginApiClient);
     private readonly messageService: MessageService = inject(MessageService);

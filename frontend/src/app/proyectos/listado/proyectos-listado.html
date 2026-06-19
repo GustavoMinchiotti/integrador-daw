@@ -1,158 +1,243 @@
 <app-template>
+    <section class="page-heading">
+        <div>
+            <p class="section-index">01 / PORTAFOLIO</p>
+            <h1>Proyectos</h1>
+            <p class="page-subtitle">Una vista común para decidir, avanzar y entregar.</p>
+        </div>
 
-    <!-- PANEL SUPERIOR -->
-    <div class="filtro-panel flex align-items-center gap-3">
+        <div class="heading-actions">
+            <p-button
+                icon="pi pi-download"
+                label="Exportar CSV"
+                severity="secondary"
+                [disabled]="!proyectos().length"
+                (click)="exportarCsv()">
+            </p-button>
+            <p-button
+                id="boton-crear-proyecto"
+                icon="pi pi-plus"
+                label="Nuevo proyecto"
+                (click)="crearProyecto()">
+            </p-button>
+        </div>
+    </section>
 
-        <input
-            type="text"
-            placeholder="🔍 Buscar proyecto por nombre..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event); buscarOFiltrar()"
-            class="filtro-input"
-        />
+    <section class="metricas-panel" aria-label="Resumen de proyectos">
+        <div class="metrica principal">
+            <span>Resultados</span>
+            <strong>{{ totalItems() }}</strong>
+        </div>
+        <div class="metrica activo">
+            <span>Activos</span>
+            <strong>{{ proyectosActivos() }}</strong>
+        </div>
+        <div class="metrica finalizado">
+            <span>Finalizados</span>
+            <strong>{{ proyectosFinalizados() }}</strong>
+        </div>
+        <div class="metrica baja">
+            <span>En baja</span>
+            <strong>{{ proyectosBaja() }}</strong>
+        </div>
+        <div class="metrica interno">
+            <span>Internos</span>
+            <strong>{{ proyectosInternos() }}</strong>
+        </div>
+    </section>
+
+    <section class="filtro-panel" aria-label="Filtros del listado">
+        <label class="search-field">
+            <i class="pi pi-search" aria-hidden="true"></i>
+            <input
+                type="search"
+                placeholder="Buscar por nombre"
+                [ngModel]="searchQuery()"
+                (ngModelChange)="searchQuery.set($event); buscarOFiltrar()"
+                aria-label="Buscar proyecto por nombre" />
+        </label>
 
         <select
             [ngModel]="estadoFiltro()"
             (ngModelChange)="estadoFiltro.set($event); buscarOFiltrar()"
-            class="estado-filtro"
-            title="Filtrar proyectos por estado"
-            aria-label="Filtrar proyectos por estado"
-        >
-            <option value="">📂 Todos los Estados</option>
-            <option value="ACTIVO">🟢 Activos</option>
-            <option value="FINALIZADO">✅ Finalizados</option>
-            <option value="BAJA">⚫ Dados de Baja</option>
+            aria-label="Filtrar proyectos por estado">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVO">Activos</option>
+            <option value="FINALIZADO">Finalizados</option>
+            <option value="BAJA">Dados de baja</option>
         </select>
 
-    </div>
+        <select
+            [ngModel]="sortBy()"
+            (ngModelChange)="sortBy.set($event); cambiarOrdenamiento()"
+            aria-label="Ordenar proyectos">
+            <option value="id">Más recientes</option>
+            <option value="nombre">Por nombre</option>
+            <option value="estado">Por estado</option>
+            <option value="cliente">Por cliente</option>
+        </select>
 
-    <!-- BOTÓN CREAR -->
-    <div class="crear-contenedor">
+        <select
+            class="orden-direccion"
+            [ngModel]="sortDirection()"
+            (ngModelChange)="sortDirection.set($event); cambiarOrdenamiento()"
+            aria-label="Dirección de ordenamiento">
+            <option value="ASC">Ascendente</option>
+            <option value="DESC">Descendente</option>
+        </select>
+
         <p-button
-            id="boton-crear-proyecto"
-            icon="pi pi-plus"
-            label="Crear Proyecto"
-            (click)="crearProyecto()">
+            icon="pi pi-filter-slash"
+            [text]="true"
+            pTooltip="Limpiar filtros"
+            aria-label="Limpiar filtros"
+            (click)="limpiarFiltros()">
         </p-button>
-    </div>
+    </section>
 
-    <!--  TABLA -->
-    <p-table
-        id="tabla"
-        [value]="proyectos()"
-        [tableStyle]="{ 'min-width': '50rem' }"
-        [scrollable]="true"
-        scrollHeight="60vh"
-    >
+    <section class="table-shell">
+        <p-table
+            id="tabla"
+            [value]="proyectos()"
+            [tableStyle]="{ 'min-width': '46rem' }"
+            [scrollable]="true"
+            [loading]="loading()"
+            scrollHeight="58vh">
 
-        <!-- 🔹 HEADER -->
-        <ng-template #header>
-            <tr>
-                <th>📌 Nombre</th>
-                <th>🏢 Cliente</th>
-                <th>📊 Estado</th>
-                <th>⚙️ Acciones</th>
-            </tr>
-        </ng-template>
+            <ng-template #header>
+                <tr>
+                    <th>Proyecto</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th class="actions-heading">Acciones</th>
+                </tr>
+            </ng-template>
 
-        <!-- 🔹 BODY -->
-        <ng-template #body let-proyecto>
-            <tr>
-
-                <!-- Nombre -->
-                <td>
-                    <strong>{{ proyecto.nombre }}</strong>
-                </td>
-
-                <!-- Cliente -->
-                <td>
-                    @if (proyecto.cliente) {
-                        <span class="cliente-nombre">
-                            💼 {{ proyecto.cliente.nombre }}
+            <ng-template #body let-proyecto>
+                <tr>
+                    <td>
+                        <span class="project-id">P-{{ proyecto.id }}</span>
+                        <strong>{{ proyecto.nombre }}</strong>
+                    </td>
+                    <td>
+                        @if (proyecto.cliente) {
+                            <span>{{ proyecto.cliente.nombre }}</span>
+                        } @else {
+                            <span class="cliente-interno">Desarrollo interno</span>
+                        }
+                    </td>
+                    <td>
+                        <span
+                            class="status"
+                            [class.status-activo]="proyecto.estado === 'ACTIVO'"
+                            [class.status-finalizado]="proyecto.estado === 'FINALIZADO'"
+                            [class.status-baja]="proyecto.estado === 'BAJA'">
+                            {{ proyecto.estado }}
                         </span>
-                    } @else {
-                        <span class="cliente-interno">
-                            ⚙️ Desarrollo Interno
-                        </span>
+                    </td>
+                    <td class="row-actions">
+                        <p-button
+                            icon="pi pi-list"
+                            severity="secondary"
+                            [text]="true"
+                            pTooltip="Abrir tablero de tareas"
+                            aria-label="Abrir tablero de tareas"
+                            (click)="gestionarTareas(proyecto)">
+                        </p-button>
+                        <p-button
+                            icon="pi pi-pencil"
+                            severity="secondary"
+                            [text]="true"
+                            pTooltip="Editar proyecto"
+                            aria-label="Editar proyecto"
+                            (click)="editarProyecto(proyecto)">
+                        </p-button>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <i class="pi pi-inbox" aria-hidden="true"></i>
+                        <strong>Sin coincidencias</strong>
+                        <span>Probá con otro nombre o estado.</span>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </section>
+
+    @if (errorMessage()) {
+        <div class="error-panel" role="alert">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            {{ errorMessage() }}
+        </div>
+    }
+
+    <nav class="paginacion-container" aria-label="Paginación de proyectos">
+        <div class="paginacion-resumen">
+            <span>{{ totalItems() }} proyectos</span>
+            <label>
+                Filas
+                <select
+                    class="limite-select"
+                    [ngModel]="limit()"
+                    (ngModelChange)="cambiarLimite($event)"
+                    [disabled]="loading()"
+                    aria-label="Cantidad de proyectos por página">
+                    @for (opcion of pageSizeOptions; track opcion) {
+                        <option [value]="opcion">{{ opcion }}</option>
                     }
-                </td>
+                </select>
+            </label>
+        </div>
 
-                <!-- Estado -->
-                <td>
-                    <span
-                        [ngStyle]="{
-                            padding: '4px 8px',
-                            'border-radius': '6px',
-                            'font-size': '0.8rem',
-                            'background-color':
-                                proyecto.estado === 'ACTIVO' ? '#10b981' :
-                                proyecto.estado === 'FINALIZADO' ? '#3b82f6' :
-                                '#6b7280',
-                            color: 'white'
-                        }"
-                    >
-                        {{ proyecto.estado }}
-                    </span>
-                </td>
+        <div class="paginacion-botones">
+            <button
+                class="page-button icon-button"
+                [disabled]="currentPage() === 1 || loading()"
+                (click)="cambiarPagina(1)"
+                aria-label="Primera página">
+                <i class="pi pi-angle-double-left" aria-hidden="true"></i>
+            </button>
+            <button
+                class="page-button icon-button"
+                [disabled]="currentPage() === 1 || loading()"
+                (click)="cambiarPagina(currentPage() - 1)"
+                aria-label="Página anterior">
+                <i class="pi pi-angle-left" aria-hidden="true"></i>
+            </button>
+            @for (pagina of paginasVisibles(); track pagina) {
+                <button
+                    class="page-button"
+                    [class.activa]="pagina === currentPage()"
+                    [disabled]="pagina === currentPage() || loading()"
+                    (click)="cambiarPagina(pagina)"
+                    [attr.aria-label]="'Ir a página ' + pagina">
+                    {{ pagina }}
+                </button>
+            }
+            <button
+                class="page-button icon-button"
+                [disabled]="currentPage() === totalPages() || loading()"
+                (click)="cambiarPagina(currentPage() + 1)"
+                aria-label="Página siguiente">
+                <i class="pi pi-angle-right" aria-hidden="true"></i>
+            </button>
+            <button
+                class="page-button icon-button"
+                [disabled]="currentPage() === totalPages() || loading()"
+                (click)="cambiarPagina(totalPages())"
+                aria-label="Última página">
+                <i class="pi pi-angle-double-right" aria-hidden="true"></i>
+            </button>
+        </div>
 
-                <!-- Acciones -->
-                <td>
-
-                    <p-button
-                        id="boton-gestionar-tareas"
-                        icon="pi pi-list"
-                        severity="info"
-                        pTooltip="Ver tareas (Kanban)"
-                        (click)="gestionarTareas(proyecto)">
-                    </p-button>
-
-                    <p-button
-                        icon="pi pi-pencil"
-                        severity="success"
-                        pTooltip="Editar proyecto"
-                        (click)="editarProyecto(proyecto)">
-                    </p-button>
-
-                </td>
-
-            </tr>
-        </ng-template>
-
-        <!--  -->
-                <ng-template #emptymessage>
-            <tr>
-                <td colspan="4" class="emptymessage-td">
-                    📭 No se encontraron proyectos con estos filtros
-                </td>
-            </tr>
-        </ng-template>
-
-    </p-table>
-
-    <!--  PAGINACIÓN  -->
-    <div class="paginacion-container paginacion-estilos">
-
-        <button
-            [disabled]="currentPage() === 1"
-            (click)="cambiarPagina(currentPage() - 1)">
-            « Anterior
-        </button>
-
-        <span class="paginacion-texto">
-            Página {{ currentPage() }} de {{ totalPages() }}
-        </span>
-
-        <button
-            [disabled]="currentPage() === totalPages()"
-            (click)="cambiarPagina(currentPage() + 1)">
-            Siguiente »
-        </button>
-
-    </div>
-
+        <span class="paginacion-texto">Página {{ currentPage() }} / {{ totalPages() }}</span>
+    </nav>
 </app-template>
 
-<!--  MODAL -->
 <app-gestion-proyecto
     [(visible)]="dialogVisible"
     [(proyectoSeleccionado)]="proyectoSeleccionado">
