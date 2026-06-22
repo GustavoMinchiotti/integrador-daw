@@ -122,6 +122,13 @@
                         <strong>{{ proyecto.nombre }}</strong>
                     </td>
                     <td>
+                        @if (proyecto.cliente) {
+                            <span>{{ proyecto.cliente.nombre }}</span>
+                        } @else {
+                            <span class="cliente-interno">Desarrollo interno</span>
+                        }
+                    </td>
+                    <td>
                         <button
                             type="button"
                             class="pulso-trigger"
@@ -134,13 +141,6 @@
                                 <small>{{ proyecto.pulso.puntaje }}/100</small>
                             </span>
                         </button>
-                    </td>
-                    <td>
-                        @if (proyecto.cliente) {
-                            <span>{{ proyecto.cliente.nombre }}</span>
-                        } @else {
-                            <span class="cliente-interno">Desarrollo interno</span>
-                        }
                     </td>
                     <td>
                         <span
