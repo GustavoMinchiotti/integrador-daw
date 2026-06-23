@@ -1,4 +1,4 @@
-<p-dialog header="Clientes" [modal]="true" [(visible)]="visible"
+<p-dialog header="Clientes" [modal]="true" closeAriaLabel="Cerrar diálogo" [(visible)]="visible"
     [style]="{ width: '50rem', maxWidth: 'calc(100vw - 2rem)' }">
     <p-button id="boton-crear-cliente" icon="pi pi-plus" label="Nuevo cliente" (click)="crearCliente()"></p-button>
     <p-table id="tabla" aria-label="Listado de clientes" [value]="clientes()" [scrollable]="true"

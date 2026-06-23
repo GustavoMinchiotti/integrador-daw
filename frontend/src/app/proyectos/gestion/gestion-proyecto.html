@@ -1,4 +1,4 @@
-<p-dialog [header]="header()" [modal]="true" [(visible)]="visible"
+<p-dialog [header]="header()" [modal]="true" closeAriaLabel="Cerrar diálogo" [(visible)]="visible"
     [style]="{ width: '28rem', maxWidth: 'calc(100vw - 2rem)' }" (onHide)="cerrarDialog()">
     <form [formGroup]="form" class="entity-form" (ngSubmit)="guardarProyecto()">
         <label for="nombre">Nombre del proyecto</label>

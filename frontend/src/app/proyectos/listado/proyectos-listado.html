@@ -264,6 +264,7 @@
 <p-dialog
     [header]="'Pulso / ' + (proyectoPulso()?.nombre ?? '')"
     [modal]="true"
+    closeAriaLabel="Cerrar diálogo"
     [visible]="pulsoVisible()"
     (visibleChange)="pulsoVisible.set($event)"
     [style]="{ width: 'min(34rem, calc(100vw - 2rem))' }">
