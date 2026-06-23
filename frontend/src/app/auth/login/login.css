@@ -82,6 +82,16 @@ h1 {
     width: 100%;
 }
 
+.login-error {
+    background: var(--error-bg);
+    border-left: 3px solid var(--danger);
+    color: var(--error-text);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+}
+
 .login-form input,
 ::ng-deep .login-form .p-password-input {
     min-height: 3rem;

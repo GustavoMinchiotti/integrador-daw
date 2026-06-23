@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, signal } from "@angular/core";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
 import { PasswordModule } from "primeng/password";
@@ -7,6 +7,7 @@ import { MessageService } from "primeng/api";
 import { AuthStore } from "../auth-store";
 import { Router } from "@angular/router";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { finalize } from "rxjs";
 
 @Component({
     selector: "app-login",
@@ -26,24 +27,36 @@ export class Login {
         nombre: new FormControl("", [Validators.required]),
         clave: new FormControl("", [Validators.required])
     });
+    readonly loading = signal(false);
+    readonly errorMessage = signal('');
 
     iniciarSesion() {
+        this.errorMessage.set('');
+
         if (!this.form.valid) {
             this.form.markAllAsTouched();
-            this.messageService.add({ severity: "warn", summary: "Atención", detail: "Por favor, completa tu usuario y clave." });
+            this.errorMessage.set('Completá tu usuario y clave para continuar.');
+            return;
+        }
+
+        if (this.loading()) {
             return;
         }
 
         const nombre: string = this.form.value.nombre!;
         const clave: string = this.form.value.clave!;
 
-        this.loginApiClient.iniciarSesion(nombre, clave).subscribe({
+        this.loading.set(true);
+        this.loginApiClient.iniciarSesion(nombre, clave).pipe(
+            finalize(() => this.loading.set(false))
+        ).subscribe({
             next: (data) => {
                 this.authStore.guardarToken(data.accessToken);
                 this.router.navigateByUrl("/proyectos");
             },
             error: (err) => {
                 const errorMessage = err.error?.message || "Ha ocurrido un error al iniciar sesión en el servidor.";
+                this.errorMessage.set(errorMessage);
                 this.messageService.add({ severity: "error", summary: "Acceso Denegado", detail: errorMessage });
             }
         });

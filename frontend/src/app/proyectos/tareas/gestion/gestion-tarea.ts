@@ -10,6 +10,7 @@ import { ListTareaDTO } from "../listado/list-tarea-dto";
 import { EstadosTareasEnum } from "../estados-tareas-enum";
 import { UpdateTareaDto } from "./update-tarea-dto";
 import { CreateTareaDTO } from "./create-tarea-dto";
+import { finalize } from "rxjs";
 
 @Component({
     selector: "app-gestion-tarea",
@@ -24,6 +25,7 @@ export class GestionTarea {
     tareaSeleccionada: ModelSignal<ListTareaDTO | null> = model<ListTareaDTO | null>(null);
 
     readonly estados: WritableSignal<string[]> = signal(Object.values(EstadosTareasEnum));
+    readonly guardando = signal(false);
 
     private readonly messageService: MessageService = inject(MessageService);
 
@@ -70,6 +72,10 @@ export class GestionTarea {
     }
 
     guardarTarea(): void {
+        if (this.guardando()) {
+            return;
+        }
+
         if (!this.form.valid) {
             this.form.markAllAsTouched();
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Por favor, complete todos los campos requeridos.' });
@@ -77,13 +83,16 @@ export class GestionTarea {
         }
 
         const formRawValue = this.form.getRawValue();
+        this.guardando.set(true);
 
         if (this.tareaSeleccionada()) {
             const dto: UpdateTareaDto = {
                 descripcion: formRawValue.descripcion,
                 estado: formRawValue.estado
             };
-            this.gestionTareaApiClient.actualizarTarea(this.idProyecto(), this.tareaSeleccionada()?.id!, dto).subscribe({
+            this.gestionTareaApiClient.actualizarTarea(this.idProyecto(), this.tareaSeleccionada()?.id!, dto).pipe(
+                finalize(() => this.guardando.set(false))
+            ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea actualizada correctamente.' });
                     this.cerrarDialog();
@@ -103,7 +112,9 @@ export class GestionTarea {
             const dto: CreateTareaDTO = {
                 descripcion: formRawValue.descripcion
             };
-            this.gestionTareaApiClient.crearTarea(this.idProyecto(), dto).subscribe({
+            this.gestionTareaApiClient.crearTarea(this.idProyecto(), dto).pipe(
+                finalize(() => this.guardando.set(false))
+            ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea creada correctamente.' });
                     this.cerrarDialog();

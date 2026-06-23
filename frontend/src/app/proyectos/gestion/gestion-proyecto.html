@@ -1,8 +1,13 @@
 <p-dialog [header]="header()" [modal]="true" [(visible)]="visible"
     [style]="{ width: '28rem', maxWidth: 'calc(100vw - 2rem)' }" (onHide)="cerrarDialog()">
-    <form [formGroup]="form" class="entity-form">
+    <form [formGroup]="form" class="entity-form" (ngSubmit)="guardarProyecto()">
         <label for="nombre">Nombre del proyecto</label>
-        <input pInputText type="text" id="nombre" placeholder="Ej. Portal de clientes" formControlName="nombre" />
+        <input pInputText type="text" id="nombre" placeholder="Ej. Portal de clientes" formControlName="nombre"
+            [attr.aria-invalid]="form.controls['nombre'].touched && form.controls['nombre'].invalid"
+            aria-describedby="proyecto-nombre-error" />
+        @if (form.controls['nombre'].touched && form.controls['nombre'].invalid) {
+            <small id="proyecto-nombre-error" class="form-error">Ingresá el nombre del proyecto.</small>
+        }
 
         <label for="cliente">Cliente</label>
         <ng-select id="cliente" formControlName="cliente" [items]="clientes()" bindLabel="nombre"
@@ -13,11 +18,11 @@
 
         @if (proyectoSeleccionado()) {
             <label for="estado">Estado</label>
-            <p-select id="estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+            <p-select inputId="estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
         }
 
-        <button pButton type="button" id="guardar" icon="pi pi-check" label="Guardar proyecto"
-            (click)="guardarProyecto()"></button>
+        <button pButton type="submit" id="guardar" icon="pi pi-check" label="Guardar proyecto"
+            [loading]="guardando()" [disabled]="guardando()"></button>
     </form>
 </p-dialog>
 

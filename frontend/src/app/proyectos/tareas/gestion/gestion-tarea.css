@@ -1,12 +1,22 @@
-#contenedor-formulario{
+.entity-form {
     display: flex;
     flex-direction: column;
+    gap: 0.7rem;
 }
 
-#descripcion{
-    margin-bottom: 1rem;
+.entity-form label {
+    color: var(--muted);
+    font-size: 0.7rem;
+    margin-top: 0.4rem;
+    text-transform: uppercase;
 }
 
-#estado{
-    margin-bottom: 1rem;
+.entity-form input,
+.entity-form p-select,
+.entity-form button {
+    width: 100%;
+}
+
+.entity-form button {
+    margin-top: 0.75rem;
 }

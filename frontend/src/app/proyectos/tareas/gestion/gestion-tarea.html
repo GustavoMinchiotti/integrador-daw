@@ -1,18 +1,22 @@
-<p-dialog [header]="header()" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }" [visible]="visible()"
+<p-dialog [header]="header()" [modal]="true" [(visible)]="visible"
+    [style]="{ width: '25rem', maxWidth: 'calc(100vw - 2rem)' }"
     (onHide)="cerrarDialog()">
 
-    <form [formGroup]="form">
-        <div id="contenedor-formulario">
-
-            <input pInputText type="text" id="descripcion" placeholder="Descripción" formControlName="descripcion" />
-
-            @if (tareaSeleccionada()) {
-            <p-select id="estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+    <form [formGroup]="form" class="entity-form" (ngSubmit)="guardarTarea()">
+            <label for="descripcion">Descripción de la tarea</label>
+            <input pInputText type="text" id="descripcion" placeholder="Ej. Validar formulario de acceso" formControlName="descripcion"
+                [attr.aria-invalid]="form.controls['descripcion'].touched && form.controls['descripcion'].invalid"
+                aria-describedby="tarea-descripcion-error" />
+            @if (form.controls['descripcion'].touched && form.controls['descripcion'].invalid) {
+                <small id="tarea-descripcion-error" class="form-error">Ingresá la descripción de la tarea.</small>
             }
 
-        </div>
+            @if (tareaSeleccionada()) {
+                <label for="tarea-estado">Estado</label>
+                <p-select inputId="tarea-estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+            }
+
+            <button pButton type="submit" icon="pi pi-check" label="Guardar tarea"
+                [loading]="guardando()" [disabled]="guardando()"></button>
     </form>
-
-    <button pButton label="Guardar" (click)="guardarTarea()"></button>
-
 </p-dialog>

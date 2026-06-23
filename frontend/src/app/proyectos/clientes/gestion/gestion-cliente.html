@@ -1,18 +1,22 @@
-<p-dialog [header]="header()" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }" [visible]="visible()"
+<p-dialog [header]="header()" [modal]="true" [(visible)]="visible"
+    [style]="{ width: '25rem', maxWidth: 'calc(100vw - 2rem)' }"
     (onHide)="cerrarDialog()">
 
-    <form [formGroup]="form">
-        <div id="contenedor-formulario">
-
-            <input pInputText type="text" id="nombre" placeholder="Nombre" formControlName="nombre" />
-
-            @if (clienteSeleccionado()) {
-            <p-select id="estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+    <form [formGroup]="form" class="entity-form" (ngSubmit)="guardarCliente()">
+            <label for="cliente-nombre">Nombre del cliente</label>
+            <input pInputText type="text" id="cliente-nombre" placeholder="Ej. Empresa del Centro" formControlName="nombre"
+                [attr.aria-invalid]="form.controls['nombre'].touched && form.controls['nombre'].invalid"
+                aria-describedby="cliente-nombre-error" />
+            @if (form.controls['nombre'].touched && form.controls['nombre'].invalid) {
+                <small id="cliente-nombre-error" class="form-error">Ingresá el nombre del cliente.</small>
             }
 
-        </div>
+            @if (clienteSeleccionado()) {
+                <label for="cliente-estado">Estado</label>
+                <p-select inputId="cliente-estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+            }
+
+            <button pButton type="submit" icon="pi pi-check" label="Guardar cliente"
+                [loading]="guardando()" [disabled]="guardando()"></button>
     </form>
-
-    <button pButton label="Guardar" (click)="guardarCliente()"></button>
-
 </p-dialog>

@@ -1,3 +1,14 @@
-#tabla{
+#tabla {
     margin-top: 1rem;
-}   
+}
+
+.actions-heading,
+.row-actions {
+    text-align: right;
+}
+
+.empty-state {
+    color: var(--muted);
+    padding: 2rem 1rem;
+    text-align: center;
+}

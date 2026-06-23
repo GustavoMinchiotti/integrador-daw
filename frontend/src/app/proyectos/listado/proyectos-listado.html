@@ -107,11 +107,11 @@
 
             <ng-template #header>
                 <tr>
-                    <th>Proyecto</th>
-                    <th>Cliente</th>
-                    <th>Pulso</th>
-                    <th>Estado</th>
-                    <th class="actions-heading">Acciones</th>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Pulso</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="actions-heading">Acciones</th>
                 </tr>
             </ng-template>
 
@@ -134,6 +134,7 @@
                             class="pulso-trigger"
                             [attr.data-nivel]="proyecto.pulso.nivel"
                             [pTooltip]="proyecto.pulso.recomendacion"
+                            [attr.aria-label]="'Ver pulso de ' + proyecto.nombre + ': ' + etiquetaPulso(proyecto.pulso.nivel)"
                             (click)="verPulso(proyecto)">
                             <span class="pulso-dot" aria-hidden="true"></span>
                             <span>
@@ -228,6 +229,7 @@
                 <button
                     class="page-button"
                     [class.activa]="pagina === currentPage()"
+                    [attr.aria-current]="pagina === currentPage() ? 'page' : null"
                     [disabled]="pagina === currentPage() || loading()"
                     (click)="cambiarPagina(pagina)"
                     [attr.aria-label]="'Ir a página ' + pagina">

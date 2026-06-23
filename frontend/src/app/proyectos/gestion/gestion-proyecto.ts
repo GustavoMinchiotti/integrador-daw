@@ -15,6 +15,7 @@ import { ClientesListadoApiClient } from "../clientes/listado/clientes-listado-a
 import { ClientesListado } from "../clientes/listado/clientes-listado";
 import { EstadosClientesEnum } from "../clientes/estados-clientes-enum";
 import { NgSelectModule } from '@ng-select/ng-select';
+import { finalize } from "rxjs";
 
 @Component({
   selector: "app-gestion-proyecto",
@@ -38,6 +39,7 @@ export class GestionProyecto implements OnInit {
 
   estados: WritableSignal<string[]> = signal(Object.values(EstadosProyectosEnum));
   clientes: WritableSignal<ListClienteDTO[]> = signal([]);
+  guardando = signal(false);
 
   private messageService = inject(MessageService);
   private gestionProyectoApiClient = inject(GestionProyectoApiClient);
@@ -114,6 +116,10 @@ export class GestionProyecto implements OnInit {
 
   guardarProyecto(): void {
 
+    if (this.guardando()) {
+      return;
+    }
+
     if (!this.form.valid) {
       this.form.markAllAsTouched();
       this.messageService.add({
@@ -125,6 +131,7 @@ export class GestionProyecto implements OnInit {
     }
 
     const value = this.form.getRawValue();
+    this.guardando.set(true);
 
     if (this.proyectoSeleccionado()) {
 
@@ -134,7 +141,9 @@ export class GestionProyecto implements OnInit {
         estado: value.estado
       };
 
-      this.gestionProyectoApiClient.actualizarProyecto(this.proyectoSeleccionado()!.id, dto)
+      this.gestionProyectoApiClient.actualizarProyecto(this.proyectoSeleccionado()!.id, dto).pipe(
+        finalize(() => this.guardando.set(false))
+      )
         .subscribe({
           next: () => {
             this.messageService.add({
@@ -143,6 +152,9 @@ export class GestionProyecto implements OnInit {
               detail: 'Proyecto actualizado'
             });
             this.cerrarDialog();
+          },
+          error: (err) => {
+            this.mostrarError(err, 'No se pudo actualizar el proyecto');
           }
         });
 
@@ -153,7 +165,9 @@ export class GestionProyecto implements OnInit {
         idCliente: value.cliente ? value.cliente.id : null
       };
 
-      this.gestionProyectoApiClient.crearProyecto(dto)
+      this.gestionProyectoApiClient.crearProyecto(dto).pipe(
+        finalize(() => this.guardando.set(false))
+      )
         .subscribe({
           next: () => {
             this.messageService.add({
@@ -162,6 +176,9 @@ export class GestionProyecto implements OnInit {
               detail: 'Proyecto creado'
             });
             this.cerrarDialog();
+          },
+          error: (err) => {
+            this.mostrarError(err, 'No se pudo crear el proyecto');
           }
         });
     }
@@ -169,5 +186,13 @@ export class GestionProyecto implements OnInit {
 
   gestionarClientes(): void {
     this.dialogClientesVisible.set(true);
+  }
+
+  private mostrarError(error: any, fallback: string): void {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error?.error?.message ?? fallback
+    });
   }
 }

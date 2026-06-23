@@ -10,6 +10,7 @@ import { EstadosClientesEnum } from "../estados-clientes-enum";
 import { GestionClienteApiClient } from "./gestion-cliente-api-client";
 import { CreateClienteDTO } from "./create-cliente-dto";
 import { ListClienteDTO } from "../listado/list-cliente-dto";
+import { finalize } from "rxjs";
 
 @Component({
     selector: "app-gestion-cliente",
@@ -24,6 +25,7 @@ export class GestionCliente {
     clienteSeleccionado: ModelSignal<ListClienteDTO | null> = model<ListClienteDTO | null>(null);
 
     readonly estados: WritableSignal<string[]> = signal(Object.values(EstadosClientesEnum));
+    readonly guardando = signal(false);
 
     private readonly messageService: MessageService = inject(MessageService);
 
@@ -70,6 +72,10 @@ export class GestionCliente {
     }
 
     guardarCliente(): void {
+        if (this.guardando()) {
+            return;
+        }
+
         if (!this.form.valid) {
             this.form.markAllAsTouched();
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Por favor, complete todos los campos requeridos.' });
@@ -77,13 +83,16 @@ export class GestionCliente {
         }
 
         const formRawValue = this.form.getRawValue();
+        this.guardando.set(true);
 
         if (this.clienteSeleccionado()) {
             const dto: UpdateClienteDto = {
                 nombre: formRawValue.nombre,
                 estado: formRawValue.estado
             };
-            this.gestionClienteApiClient.actualizarCliente(this.clienteSeleccionado()?.id!, dto).subscribe({
+            this.gestionClienteApiClient.actualizarCliente(this.clienteSeleccionado()?.id!, dto).pipe(
+                finalize(() => this.guardando.set(false))
+            ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cliente actualizado correctamente.' });
                     this.cerrarDialog();
@@ -103,7 +112,9 @@ export class GestionCliente {
             const dto: CreateClienteDTO = {
                 nombre: formRawValue.nombre
             };
-            this.gestionClienteApiClient.crearCliente(dto).subscribe({
+            this.gestionClienteApiClient.crearCliente(dto).pipe(
+                finalize(() => this.guardando.set(false))
+            ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cliente creado correctamente.' });
                     this.cerrarDialog();

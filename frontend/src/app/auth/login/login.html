@@ -19,23 +19,39 @@
                 type="text"
                 autocomplete="username"
                 placeholder="Ingresá tu usuario"
+                [attr.aria-invalid]="form.controls['nombre'].touched && form.controls['nombre'].invalid"
+                aria-describedby="nombre-error"
                 formControlName="nombre" />
+            @if (form.controls['nombre'].touched && form.controls['nombre'].invalid) {
+                <small id="nombre-error" class="form-error">Ingresá el usuario.</small>
+            }
 
             <label for="clave">Clave</label>
             <p-password
-                id="clave"
+                inputId="clave"
                 formControlName="clave"
                 [feedback]="false"
                 [toggleMask]="true"
+                [attr.aria-invalid]="form.controls['clave'].touched && form.controls['clave'].invalid"
+                aria-describedby="clave-error"
                 autocomplete="current-password"
                 placeholder="Ingresá tu clave">
             </p-password>
+            @if (form.controls['clave'].touched && form.controls['clave'].invalid) {
+                <small id="clave-error" class="form-error">Ingresá la clave.</small>
+            }
+
+            @if (errorMessage()) {
+                <div class="login-error" role="alert">{{ errorMessage() }}</div>
+            }
 
             <p-button
                 type="submit"
                 label="Entrar al espacio"
                 icon="pi pi-arrow-right"
-                iconPos="right">
+                iconPos="right"
+                [loading]="loading()"
+                [disabled]="loading()">
             </p-button>
         </form>
 

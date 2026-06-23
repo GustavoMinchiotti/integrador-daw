@@ -39,11 +39,11 @@
   --paper-muted: #39413d;
   --line: #c8cfca;
   --muted: #66706b;
-  --coral: #d73e29;
+  --coral: #c73522;
   --cyan: #087f91;
   --acid: #718000;
   --success: #168254;
-  --danger: #c8423e;
+  --danger: #b63834;
   --control-bg: #ffffff;
   --header-bg: rgba(244, 245, 241, 0.96);
   --table-heading: #e7ebe7;
@@ -82,6 +82,29 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.form-error {
+  color: var(--danger);
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .p-dialog {
